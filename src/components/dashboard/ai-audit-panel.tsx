@@ -1,7 +1,8 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { AlertTriangle, Info, XCircle, CheckCircle2, Sparkles, Loader2, AlertCircle } from 'lucide-react'
+import { AlertTriangle, Info, XCircle, CheckCircle2, Loader2, AlertCircle } from 'lucide-react'
+import Image from 'next/image'
 import type { AuditResult, AuditIssue } from '@/lib/ai/types'
 
 // ── Quality score ring ────────────────────────────────────────────
@@ -127,7 +128,7 @@ export function AiAuditPanel({ auditStatus, auditResult, onRerun, rerunning }: A
         <ScoreRing score={auditResult.quality_score} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <Sparkles size={14} className="text-ink/50 flex-shrink-0" />
+            <Image src="/meta-llama.png" alt="AI" width={14} height={14} className="flex-shrink-0" />
             <span className="font-body text-xs text-ink/50 uppercase tracking-wide">
               Llama 3.3 Audit
             </span>

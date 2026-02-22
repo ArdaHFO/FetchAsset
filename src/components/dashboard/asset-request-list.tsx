@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Trash2, FileCheck2, FileX2, FileClock, File, Loader2, Sparkles } from 'lucide-react'
+import { Plus, Trash2, FileCheck2, FileX2, FileClock, File, Loader2 } from 'lucide-react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { WobblyButton } from '@/components/ui'
@@ -40,7 +41,7 @@ function StatusIcon({ status }: { status: SubmissionStatus }) {
 function AuditStatusDot({ status }: { status: string | null | undefined }) {
   if (!status || status === 'pending') return null
   if (status === 'processing') return <Loader2 size={11} className="text-blue animate-spin" />
-  if (status === 'complete') return <Sparkles size={11} className="text-ink/40" />
+  if (status === 'complete') return <Image src="/meta-llama.png" alt="AI" width={11} height={11} />
   if (status === 'error') return <span className="text-[10px] text-accent">!</span>
   return null
 }

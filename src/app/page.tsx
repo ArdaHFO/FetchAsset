@@ -8,7 +8,6 @@ import {
   Zap,
   FileCheck,
   Users,
-  Sparkles,
   Upload,
   CheckCircle,
   AlertCircle,
@@ -16,6 +15,7 @@ import {
   Lock,
   Building2,
 } from 'lucide-react'
+import Image from 'next/image'
 import {
   WobblyButton,
   WobblyCard,
@@ -194,7 +194,7 @@ export default function Home() {
               flavor: 'default' as const, decoration: 'tape' as const, rotate: '-1' as const,
             },
             {
-              icon: <Sparkles className="w-7 h-7" strokeWidth={2.5} />,
+              icon: <Image src="/meta-llama.png" alt="AI" width={28} height={28} />,
               title: 'Llama 3.3 AI Audit',
               desc: 'AI reads every uploaded document and flags issues. Expired tax IDs, missing brand colors, wrong formats.',
               flavor: 'postit' as const, decoration: 'tack' as const, rotate: '1' as const,
@@ -398,7 +398,7 @@ export default function Home() {
                   className="w-10 h-10 bg-ink flex items-center justify-center flex-shrink-0"
                   style={{ borderRadius: '50% 45% 55% 48% / 50% 52% 48% 50%' }}
                 >
-                  <Sparkles className="w-5 h-5 text-postit" strokeWidth={2.5} />
+                  <Image src="/meta-llama.png" alt="AI" width={20} height={20} />
                 </div>
                 <WobblyCardTitle>Llama 3.3 Smart Audit</WobblyCardTitle>
               </div>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -10,7 +11,6 @@ import {
   LogOut,
   Menu,
   X,
-  Sparkles,
   ChevronRight,
   Zap,
 } from 'lucide-react'
@@ -88,7 +88,7 @@ export function Sidebar({ userEmail, plan = 'free' }: SidebarProps) {
         <span className="font-heading text-2xl text-ink leading-none">
           Fetch<span className="text-accent">Asset</span>
         </span>
-        <Sparkles size={14} className="text-accent/70 mt-0.5" />
+        <Image src="/meta-llama.png" alt="AI" width={14} height={14} className="mt-0.5" />
       </div>
 
       {/* Nav */}

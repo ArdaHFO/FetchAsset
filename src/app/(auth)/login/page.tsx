@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, ArrowRight, Sparkles } from 'lucide-react'
+import Image from 'next/image'
+import { Mail, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { WobblyButton, WobblyCard, WobblyCardContent } from '@/components/ui'
 import { WobblyFormField } from '@/components/ui'
@@ -71,7 +72,7 @@ export default function LoginPage() {
           {/* Header */}
           <div className="mb-7 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Sparkles size={20} className="text-accent" />
+              <Image src="/meta-llama.png" alt="AI" width={20} height={20} />
               <h1 className="font-heading text-2xl text-ink">Welcome back!</h1>
             </div>
             <p className="font-body text-sm text-ink/60">

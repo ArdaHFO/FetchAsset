@@ -101,9 +101,6 @@ export default function Home() {
                   <ArrowRight strokeWidth={3} className="w-5 h-5" />
                 </WobblyButton>
               </Link>
-              <a href="#demo">
-                <WobblyButton variant="secondary" size="lg">Watch Demo </WobblyButton>
-              </a>
             </div>
             <p className="font-body text-sm text-ink/50">
               No credit card &nbsp;&nbsp; 14-day trial &nbsp;&nbsp; Cancel anytime
@@ -111,22 +108,6 @@ export default function Home() {
           </div>
 
           <div className="relative flex items-center justify-center py-10">
-            {/* Mascot video  autoplay loop, emotional warmth / anthropomorphism */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -bottom-8 -left-10 z-20 hidden md:block animate-float-slow"
-            >
-              <video
-                src="/Video-Paperclip.mp4"
-                autoPlay
-                muted
-                loop
-                playsInline
-                width={110}
-                style={{ transform: 'rotate(-6deg)', objectFit: 'contain' }}
-              />
-            </div>
-
             <WobblyCard decoration="tack" flavor="postit" rotate="-1" shadow="lg" className="w-full max-w-sm mt-6">
               <WobblyCardHeader>
                 <WobblyCardTitle className="text-2xl">Project Checklist</WobblyCardTitle>
@@ -247,44 +228,6 @@ export default function Home() {
               <p className="font-body text-ink/70 text-base">{f.desc}</p>
             </WobblyCard>
           ))}
-        </div>
-      </section>
-
-      {/* DEMO VIDEO  desire before price ask */}
-      <section id="demo" className="section-container border-t-[3px] border-dashed border-muted">
-        <div className="text-center mb-10">
-          <span className="tag-label">See it live</span>
-          <h2 className="section-title mt-4">Watch the magic happen</h2>
-          <p className="font-body text-lg text-ink/60 max-w-md mx-auto mt-3">
-            From project creation to client upload to AI audit  under 60 seconds.
-          </p>
-        </div>
-        <div className="max-w-2xl mx-auto">
-          <WobblyCard flavor="postit" shadow="lg" decoration="tack" rotate="-0.5" className="overflow-hidden p-0">
-            <div className="px-5 pt-5 pb-3 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-accent" />
-              <div className="w-3 h-3 rounded-full bg-yellow-400" />
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-              <span className="font-body text-xs text-ink/40 ml-2">fetchasset.com/portal/acme-corp</span>
-            </div>
-            <div className="mx-4 mb-4 overflow-hidden border-2 border-ink" style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}>
-              <video
-                src="/Video-Paperclip2.mp4"
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full block"
-                style={{ maxHeight: 380, objectFit: 'cover' }}
-              />
-            </div>
-          </WobblyCard>
-          <div className="mt-8 text-center">
-            <p className="font-heading text-xl text-ink/70 italic rotate-[-0.5deg]">
-              &ldquo;We cut client onboarding from 3 days to 20 minutes.&rdquo;
-            </p>
-            <p className="font-body text-sm text-ink/40 mt-2"> Design Lead, mid-size creative agency</p>
-          </div>
         </div>
       </section>
 

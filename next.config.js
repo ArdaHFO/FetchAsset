@@ -75,13 +75,8 @@ const nextConfig = {
 
   async redirects() {
     return [
-      // Redirect www → apex (update host when you deploy)
-      {
-        source: '/(.*)',
-        has: [{ type: 'host', value: 'www.fetchasset.com' }],
-        destination: 'https://fetchasset.com/:path*',
-        permanent: true,
-      },
+      // NOTE: www → apex redirect is handled at Vercel CDN level (domain settings),
+      // NOT here — having both causes ERR_TOO_MANY_REDIRECTS.
       // Legacy / alternative paths → canonical
       {
         source: '/home',

@@ -31,7 +31,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid or expired portal link.' }, { status: 403 })
     }
 
-    // Handle file upload
+    // Server-side file extension validation
+    if (requestType === 'file' && file) {
+      const { data: assetReqForValidation } = await (admin as any)
+        .from('asset_requests')
+        .select('allowed_file_types')
+        .eq('id', requestId)
+        .single()
+
+      const allowedExts = assetReqForValidation?.allowed_file_types as string[] | null
+      if (allowedExts && allowedExts.length > 0) {
+        const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+        const ok  = allowedExts.some(
+          (t: string) => t.toLowerCase() === ext || (file.type && file.type.toLowerCase().includes(t.toLowerCase()))
+        )
+        if (!ok) {
+          return NextResponse.json(
+            { error: `Invalid file type ".${ext}". Allowed: ${allowedExts.join(', ')}` },
+            { status: 400 }
+          )
+        }
+      }
+    }
     let filePath: string | null = null
     let fileName: string | null = null
     let fileSizeBytes: number | null = null

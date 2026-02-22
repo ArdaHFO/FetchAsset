@@ -56,7 +56,8 @@ const fmt = (d: Date) =>
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface DemoState {
-  niche: 'agency' | 'writer' | 'video' | 'developer' | 'photo' | 'music'
+  niche: 'agency' | 'writer' | 'video' | 'developer' | 'photo' | 'music' | 'other'
+  customNicheLabel: string
   assetName: string
   formats: string[]
   customFormat: string
@@ -66,11 +67,22 @@ export interface DemoState {
 
 export const DEFAULT_DEMO_STATE: DemoState = {
   niche: 'agency',
+  customNicheLabel: '',
   assetName: 'Logo Files',
   formats: [],
   customFormat: '',
   instructions: '',
   assetQty: 1,
+}
+
+// Blank preset used when freelancer picks a custom niche
+const CUSTOM_NICHE_PRESET = {
+  id: 'other' as const,
+  label: 'Custom',
+  icon: null,
+  assetName: '',
+  formats: [] as string[],
+  instructions: '',
 }
 
 const NICHES = [
@@ -503,23 +515,34 @@ function Step2AiSpec({
   demoState: DemoState
   setDemoState: (s: DemoState) => void
 }) {
-  const [aiSuggested, setAiSuggested] = useState(false)
-  const [aiLoading, setAiLoading]     = useState(false)
-  const [renameOn, setRenameOn]       = useState(false)
-  const [customInput, setCustomInput] = useState('')
-  const [showCustom, setShowCustom]   = useState(false)
+  const [aiSuggested, setAiSuggested]   = useState(false)
+  const [aiLoading, setAiLoading]       = useState(false)
+  const [renameOn, setRenameOn]         = useState(false)
+  const [customInput, setCustomInput]   = useState('')
+  const [showCustom, setShowCustom]     = useState(false)
+  const [nicheInput, setNicheInput]     = useState('')
+  const [showNicheInput, setShowNicheInput] = useState(false)
 
   // When niche changes, reset AI state and fill preset
-  function selectNiche(nicheId: DemoState['niche']) {
-    const preset = NICHES.find(n => n.id === nicheId)!
+  function selectNiche(nicheId: DemoState['niche'], customLabel = '') {
+    const preset = NICHES.find(n => n.id === nicheId) ?? CUSTOM_NICHE_PRESET
     setDemoState({
       ...demoState,
       niche: nicheId,
-      assetName: preset.assetName,
+      customNicheLabel: customLabel,
+      assetName: nicheId === 'other' ? (demoState.assetName || '') : preset.assetName,
       formats: [],
       instructions: '',
     })
     setAiSuggested(false)
+  }
+
+  function confirmCustomNiche() {
+    const label = nicheInput.trim()
+    if (!label) return
+    selectNiche('other', label)
+    setShowNicheInput(false)
+    setNicheInput('')
   }
 
   function toggleFormat(fmt: string) {
@@ -543,16 +566,22 @@ function Step2AiSpec({
   function handleAiSuggest() {
     if (aiSuggested) return
     setAiLoading(true)
-    const preset = NICHES.find(n => n.id === demoState.niche)!
+    const preset = NICHES.find(n => n.id === demoState.niche) ?? CUSTOM_NICHE_PRESET
+    const snapFormats = demoState.formats
+    const snapInstructions = demoState.instructions
     setTimeout(() => {
       setAiLoading(false)
       setAiSuggested(true)
-      setDemoState({ ...demoState, formats: [...preset.formats], instructions: preset.instructions })
+      setDemoState({
+        ...demoState,
+        formats: preset.formats.length > 0 ? [...Array.from(preset.formats)] : snapFormats,
+        instructions: preset.instructions || snapInstructions,
+      })
       setTimeout(() => setRenameOn(true), 700)
     }, 1800)
   }
 
-  const preset    = NICHES.find(n => n.id === demoState.niche)!
+  const preset    = NICHES.find(n => n.id === demoState.niche) ?? CUSTOM_NICHE_PRESET
   const allFmts   = preset.formats as unknown as string[]
   const canSubmit = demoState.assetName.trim().length > 0
 
@@ -593,6 +622,43 @@ function Step2AiSpec({
                     {n.label}
                   </motion.button>
                 ))}
+
+                {/* Custom / Other niche */}
+                {showNicheInput ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      autoFocus
+                      value={nicheInput}
+                      onChange={e => setNicheInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') confirmCustomNiche(); if (e.key === 'Escape') { setShowNicheInput(false); setNicheInput('') } }}
+                      placeholder="e.g. Architect, Coach…"
+                      className="w-36 px-2 py-1 border-2 border-ink/30 font-body text-xs outline-none focus:border-ink"
+                      style={{ borderRadius: '8px' }}
+                    />
+                    <button
+                      onClick={confirmCustomNiche}
+                      className="font-body text-xs px-2 py-1 bg-ink text-paper border-2 border-ink"
+                      style={{ borderRadius: '8px' }}
+                    >✓</button>
+                  </div>
+                ) : (
+                  <motion.button
+                    animate={
+                      demoState.niche === 'other'
+                        ? { backgroundColor: '#7c3aed', color: '#fff', borderColor: '#7c3aed', scale: 1.06 }
+                        : { backgroundColor: '#FAFAF7', color: '#2d2d2d', borderColor: 'rgba(45,45,45,0.2)', scale: 1 }
+                    }
+                    transition={{ type: 'spring', stiffness: 320 }}
+                    onClick={() => setShowNicheInput(true)}
+                    className="font-body text-xs px-3 py-1.5 border-2 font-semibold flex items-center gap-1.5 border-dashed"
+                    style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+                  >
+                    <Plus size={11} />
+                    {demoState.niche === 'other' && demoState.customNicheLabel
+                      ? demoState.customNicheLabel
+                      : 'Other'}
+                  </motion.button>
+                )}
               </div>
             </div>
 

@@ -40,6 +40,7 @@ interface ProjectForm {
   global_naming_rule: boolean
   contact_method: 'email' | 'whatsapp' | ''
   contact_value: string
+  freelancer_niche: string
 }
 
 // Helper: subtract buffer from ISO date → locale string
@@ -70,6 +71,18 @@ const SIZE_OPTIONS = [
   { label: '500 MB', value: 500 },
   { label: '2 GB',   value: 2048 },
 ]
+
+// Niche quick-select options — each maps to a starter template
+const NICHE_OPTS = [
+  { label: 'Design Agency',   icon: '🎨', template: 'web'      },
+  { label: 'Branding Studio', icon: '✨', template: 'branding' },
+  { label: 'Social Media',    icon: '📱', template: 'social'   },
+  { label: 'Copywriter',      icon: '✍️', template: 'none'     },
+  { label: 'Video Editor',    icon: '🎬', template: 'none'     },
+  { label: 'Developer',       icon: '💻', template: 'none'     },
+  { label: 'Photographer',    icon: '📷', template: 'none'     },
+  { label: 'Musician',        icon: '🎵', template: 'none'     },
+] as const
 
 const TEMPLATES: Record<string, { label: string; emoji: string; assets: Partial<AssetItem>[] }> = {
   none: { label: 'No template', emoji: '', assets: [] },
@@ -191,6 +204,8 @@ function StepBasics({
   onTemplate: (t: string, assets: AssetItem[]) => void
 }) {
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [customNiche, setCustomNiche]   = useState('')
+  const [showCustomNiche, setShowCustomNiche] = useState(false)
 
   function set(key: keyof ProjectForm, val: string | boolean | number) {
     onChange({ ...form, [key]: val })
@@ -202,10 +217,82 @@ function StepBasics({
     onTemplate(key, key === 'none' ? [] : tpl.assets.map((a) => makeAsset(a)))
   }
 
+  function selectNiche(label: string, tmpl: string) {
+    set('freelancer_niche', label)
+    // Auto-load the matching template only if no template chosen yet
+    if (template === 'none' && tmpl !== 'none') loadTemplate(tmpl)
+  }
+
+  function confirmCustomNiche() {
+    const label = customNiche.trim()
+    if (!label) return
+    set('freelancer_niche', label)
+    setShowCustomNiche(false)
+    setCustomNiche('')
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <h2 className="font-heading text-2xl text-ink">Project basics</h2>
       <p className="font-body text-sm text-ink/55">Give your project a name and tell us about the client.</p>
+
+      {/* Freelancer niche quick-select */}
+      <div className="flex flex-col gap-1.5">
+        <label className="font-body text-xs text-ink/50 uppercase tracking-wider">Your niche / specialty</label>
+        <div className="flex flex-wrap gap-2">
+          {NICHE_OPTS.map(n => (
+            <button
+              key={n.label}
+              type="button"
+              onClick={() => selectNiche(n.label, n.template)}
+              className={cn(
+                'font-body text-xs px-3 py-1.5 border-2 transition-all flex items-center gap-1.5',
+                form.freelancer_niche === n.label
+                  ? 'bg-ink text-paper border-ink'
+                  : 'bg-paper text-ink border-ink/25 hover:border-ink'
+              )}
+              style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '2px 2px 0 0 #2d2d2d' }}
+            >
+              {n.icon} {n.label}
+            </button>
+          ))}
+          {/* Custom niche */}
+          {showCustomNiche ? (
+            <div className="flex items-center gap-1">
+              <input
+                autoFocus
+                value={customNiche}
+                onChange={e => setCustomNiche(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') confirmCustomNiche(); if (e.key === 'Escape') { setShowCustomNiche(false); setCustomNiche('') } }}
+                placeholder="e.g. Architect, Coach…"
+                className="w-36 px-2 py-1 border-2 border-ink/30 font-body text-xs outline-none focus:border-ink bg-paper"
+                style={{ borderRadius: '8px' }}
+              />
+              <button type="button" onClick={confirmCustomNiche}
+                className="font-body text-xs px-2 py-1 bg-ink text-paper border-2 border-ink"
+                style={{ borderRadius: '8px' }}
+              >✓</button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowCustomNiche(true)}
+              className={cn(
+                'font-body text-xs px-3 py-1.5 border-2 border-dashed flex items-center gap-1.5 transition-all',
+                !NICHE_OPTS.some(n => n.label === form.freelancer_niche) && form.freelancer_niche
+                  ? 'bg-ink text-paper border-ink'
+                  : 'border-ink/30 text-ink/50 hover:border-ink hover:text-ink'
+              )}
+              style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+            >
+              <Plus size={11} />
+              {!NICHE_OPTS.some(n => n.label === form.freelancer_niche) && form.freelancer_niche
+                ? form.freelancer_niche
+                : 'Other'}
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Template loader */}
       <div className="flex flex-col gap-1.5">
@@ -451,8 +538,24 @@ function StepAssets({
   onChange: (i: AssetItem[]) => void
   projectTitle: string
 }) {
-  const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [aiLoading, setAiLoading] = useState<string | null>(null)
+  const [expandedId, setExpandedId]               = useState<string | null>(null)
+  const [aiLoading, setAiLoading]                   = useState<string | null>(null)
+  const [customTypeInput, setCustomTypeInput]       = useState<Record<string, string>>({})
+  const [showCustomType, setShowCustomType]         = useState<Record<string, boolean>>({})
+
+  function toggleCustomTypeInput(id: string, show: boolean) {
+    setShowCustomType(prev => ({ ...prev, [id]: show }))
+    if (!show) setCustomTypeInput(prev => ({ ...prev, [id]: '' }))
+  }
+
+  function addCustomFileType(item: AssetItem) {
+    const val = (customTypeInput[item.id] ?? '').trim().toUpperCase().replace(/^\./, '')
+    if (!val) return
+    if (!item.allowed_file_types.includes(val)) {
+      update(item.id, { allowed_file_types: [...item.allowed_file_types, val] })
+    }
+    toggleCustomTypeInput(item.id, false)
+  }
 
   function add() {
     const newItem = makeAsset()
@@ -646,10 +749,58 @@ function StepAssets({
                                   )}
                                   style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
                                 >
-                                  {selected && <span className="mr-1"></span>}{type}
+                                  {selected && <span className="mr-1">✓</span>}{type}
                                 </button>
                               )
                             })}
+
+                            {/* Custom file type badges (purple, click to remove) */}
+                            {item.allowed_file_types
+                              .filter(t => !FILE_TYPES.includes(t))
+                              .map(t => (
+                                <button
+                                  key={t}
+                                  type="button"
+                                  onClick={() => update(item.id, { allowed_file_types: item.allowed_file_types.filter(x => x !== t) })}
+                                  className="font-body text-xs px-2.5 py-1 border-2 bg-[#7c3aed] text-white border-[#7c3aed]"
+                                  style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+                                  title="Click to remove"
+                                >
+                                  .{t.toLowerCase()} ✕
+                                </button>
+                              ))
+                            }
+
+                            {/* Add custom extension */}
+                            {showCustomType[item.id] ? (
+                              <div className="flex items-center gap-1">
+                                <input
+                                  autoFocus
+                                  value={customTypeInput[item.id] ?? ''}
+                                  onChange={e => setCustomTypeInput(prev => ({ ...prev, [item.id]: e.target.value }))}
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter') addCustomFileType(item)
+                                    if (e.key === 'Escape') toggleCustomTypeInput(item.id, false)
+                                  }}
+                                  placeholder=".ext"
+                                  className="w-20 px-2 py-1 border-2 border-ink/30 font-body text-xs outline-none focus:border-ink bg-paper"
+                                  style={{ borderRadius: '8px' }}
+                                />
+                                <button type="button" onClick={() => addCustomFileType(item)}
+                                  className="font-body text-xs px-2 py-1 bg-ink text-paper border-2 border-ink"
+                                  style={{ borderRadius: '8px' }}
+                                >Add</button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => toggleCustomTypeInput(item.id, true)}
+                                className="font-body text-xs px-2.5 py-1 border-2 border-dashed border-ink/30 text-ink/50 flex items-center gap-1 hover:border-ink hover:text-ink transition-colors"
+                                style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+                              >
+                                <Plus size={10} /> custom
+                              </button>
+                            )}
                           </div>
 
                           {/* Size limit */}
@@ -843,7 +994,7 @@ export default function NewProjectPage() {
   const [form, setForm] = useState<ProjectForm>({
     title: '', client_name: '', client_email: '', notes: '',
     due_date: '', buffer_days: 0, auto_reminder: false, global_naming_rule: false,
-    contact_method: '', contact_value: '',
+    contact_method: '', contact_value: '', freelancer_niche: '',
   })
   const [assets, setAssets] = useState<AssetItem[]>([])
 

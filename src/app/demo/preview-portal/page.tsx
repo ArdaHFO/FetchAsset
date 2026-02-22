@@ -567,26 +567,31 @@ export default function DemoPreviewPortal() {
                   boxShadow: '3px 3px 0 0 #2d2d2d',
                 }}
               >
-                Build Your Own Portal — Free <ExternalLink size={14} />
+                🚀 Get this for your own clients — start free <ExternalLink size={14} />
               </Link>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* CTA */}
+        {/* CTA — shown only before completion; targets freelancers trying the demo as a client */}
         {!isDone && (
-          <div className="text-center pt-2">
-            <p className="font-body text-xs text-ink/35 mb-3">Liked what you saw?</p>
+          <div
+            className="flex items-center justify-between gap-3 px-4 py-3 bg-[#fffde7] border-2 border-ink/15"
+            style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px' }}
+          >
+            <p className="font-body text-xs text-ink/50">
+              💡 <strong className="text-ink">Are you a freelancer?</strong> This is what your clients would see.
+            </p>
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 px-6 py-2.5 font-body text-sm font-bold text-paper"
+              className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2 font-body text-xs font-bold text-paper"
               style={{
                 background: BRAND_COLOR,
                 borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px',
-                boxShadow: '3px 3px 0 0 #2d2d2d',
+                boxShadow: '2px 2px 0 0 #2d2d2d',
               }}
             >
-              Create Your Free Portal <ExternalLink size={14} />
+              Get FetchAsset free <ExternalLink size={11} />
             </Link>
           </div>
         )}

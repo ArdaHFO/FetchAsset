@@ -105,11 +105,9 @@ export const metadata: Metadata = {
   // ── Icons ─────────────────────────────────────────────────────────
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/logo.png', type: 'image/png' },
     ],
-    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
-    other: [{ rel: 'mask-icon', url: '/safari-pinned-tab.svg', color: '#e63946' }],
+    apple: [{ url: '/logo.png', sizes: '180x180' }],
   },
 
   // ── Manifest ──────────────────────────────────────────────────────

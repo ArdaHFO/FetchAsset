@@ -41,12 +41,7 @@ export default function Home() {
       <nav className="sticky top-0 z-50 bg-paper/90 backdrop-blur-sm border-b-[3px] border-dashed border-muted">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div
-              className="w-10 h-10 bg-ink flex items-center justify-center"
-              style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
-            >
-              <Zap className="w-5 h-5 text-paper" strokeWidth={3} />
-            </div>
+            <Image src="/logo.png" alt="FetchAsset" width={40} height={40} />
             <span className="font-heading text-2xl text-ink">FetchAsset</span>
           </div>
           <div className="hidden md:flex items-center gap-8 font-body text-ink/70">

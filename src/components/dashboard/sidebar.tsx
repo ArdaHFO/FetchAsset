@@ -85,10 +85,10 @@ export function Sidebar({ userEmail, plan = 'free' }: SidebarProps) {
     >
       {/* Logo */}
       <div className="px-3 mb-4 flex items-center gap-2">
+        <Image src="/logo.png" alt="FetchAsset" width={32} height={32} />
         <span className="font-heading text-2xl text-ink leading-none">
           Fetch<span className="text-accent">Asset</span>
         </span>
-        <Image src="/meta-llama.png" alt="AI" width={14} height={14} className="mt-0.5" />
       </div>
 
       {/* Nav */}

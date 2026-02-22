@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   FolderKanban,
@@ -62,14 +62,14 @@ interface SidebarProps {
 
 export function Sidebar({ userEmail, plan = 'free' }: SidebarProps) {
   const pathname = usePathname()
-  const router = useRouter()
   const [signingOut, setSigningOut] = useState(false)
 
   async function handleSignOut() {
     setSigningOut(true)
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/login')
+    // Full page reload ensures server-side session is cleared before redirect
+    window.location.href = '/login'
   }
 
   const activeHref = NAV_ITEMS.find((item) =>

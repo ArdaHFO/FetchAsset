@@ -2,8 +2,43 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getStripe } from '@/lib/stripe'
-import { getStripePriceId, PLANS } from '@/lib/stripe/plans'
+import { getStripePriceId } from '@/lib/stripe/plans'
+import type Stripe from 'stripe'
 import type { PlanTier, Profile } from '@/lib/supabase/types'
+
+/**
+ * Resolves a human-readable promo code string (e.g. "FETCH50") to Stripe's
+ * promotion_code object ID and returns the correct session discount options.
+ *
+ * - If a valid active promo code is found → use `discounts` (auto-applied).
+ * - Otherwise → fall back to `allow_promotion_codes: true` (manual entry field).
+ *
+ * NOTE: Stripe requires `discounts` and `allow_promotion_codes` to be mutually
+ * exclusive, so we only set one or the other.
+ */
+async function buildPromoOptions(
+  stripe: Stripe,
+  promoCode: string | null,
+): Promise<
+  | { discounts: [{ promotion_code: string }] }
+  | { allow_promotion_codes: true }
+> {
+  if (promoCode) {
+    try {
+      const { data } = await stripe.promotionCodes.list({
+        code: promoCode.toUpperCase(),
+        active: true,
+        limit: 1,
+      })
+      if (data.length > 0) {
+        return { discounts: [{ promotion_code: data[0].id }] }
+      }
+    } catch (err) {
+      console.warn('[checkout] Failed to look up promo code', promoCode, err)
+    }
+  }
+  return { allow_promotion_codes: true }
+}
 
 /**
  * POST /api/stripe/checkout?plan=pro|agency
@@ -66,8 +101,8 @@ export async function POST(req: NextRequest) {
       },
       success_url: `${appUrl}/settings?checkout=success`,
       cancel_url: `${appUrl}/pricing?checkout=cancelled`,
-      allow_promotion_codes: true,
       billing_address_collection: 'auto',
+      ...(await buildPromoOptions(stripe, req.nextUrl.searchParams.get('promoCode'))),
     })
 
     if (!session.url) {

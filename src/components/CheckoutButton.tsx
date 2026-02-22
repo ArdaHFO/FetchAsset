@@ -4,6 +4,8 @@ import { WobblyButton } from '@/components/ui'
 import { capture, EVENTS } from '@/lib/posthog'
 import type { PlanTier } from '@/lib/supabase/types'
 
+const PROMO_KEY = 'fetchasset_promo_code'
+
 export default function CheckoutButton({ tier, label, variant }: {
   tier: PlanTier
   label: string
@@ -11,9 +13,21 @@ export default function CheckoutButton({ tier, label, variant }: {
 }) {
   function handleClick() {
     capture(EVENTS.CHECKOUT_INITIATED, { plan: tier })
-    // Submit the hidden form after tracking
+
+    // Auto-apply any saved promo code
+    const promoCode = typeof window !== 'undefined'
+      ? localStorage.getItem(PROMO_KEY)
+      : null
+
     const form = document.getElementById(`checkout-form-${tier}`) as HTMLFormElement | null
-    form?.submit()
+    if (form) {
+      // Update action URL with promo code if present
+      const baseAction = `/api/stripe/checkout?plan=${tier}`
+      form.action = promoCode
+        ? `${baseAction}&promoCode=${encodeURIComponent(promoCode)}`
+        : baseAction
+      form.submit()
+    }
   }
 
   return (

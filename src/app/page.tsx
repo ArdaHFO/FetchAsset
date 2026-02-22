@@ -129,6 +129,11 @@ export default function Home() {
                     <div className="mb-7">
                       <span className="font-heading text-4xl text-ink">{formatPrice(plan.monthlyPrice)}</span>
                       {plan.monthlyPrice > 0 && <span className="font-body text-sm text-ink/50"> / mo</span>}
+                      {isPro && (
+                        <p className="font-body text-xs text-ink/40 mt-1.5 leading-snug">
+                          Got a code? Apply it at checkout for a special launch discount.
+                        </p>
+                      )}
                     </div>
                     <ul className="flex flex-col gap-2.5 mb-7 flex-1">
                       {plan.features.map((feat) => (
@@ -156,7 +161,7 @@ export default function Home() {
           })}
         </div>
         <p className="font-body text-sm text-ink/40 text-center mt-10">
-          All paid plans include a 14-day free trial &middot; Cancel anytime &middot; No contracts
+          Upgrade or downgrade any time &middot; Cancel anytime
         </p>
       </section>
 
@@ -182,7 +187,7 @@ export default function Home() {
               <ArrowRight strokeWidth={3} className="w-5 h-5" />
             </WobblyButton>
           </Link>
-          <p className="font-body text-sm text-ink/40 mt-5">Free forever for solo agencies &middot; No credit card</p>
+          <p className="font-body text-sm text-ink/40 mt-5">Free forever for solo agencies</p>
         </div>
       </section>
 

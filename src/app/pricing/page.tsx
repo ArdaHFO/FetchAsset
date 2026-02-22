@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { WobblyButton, WobblyCard, WobblyCardContent } from '@/components/ui'
+import CheckoutButton from '@/components/CheckoutButton'
 import { PLANS, formatPrice } from '@/lib/stripe/plans'
 import type { PlanTier } from '@/lib/supabase/types'
 
@@ -100,6 +101,11 @@ export default function PricingPage() {
                     {plan.monthlyPrice > 0 && (
                       <span className="font-body text-sm text-ink/50"> / month</span>
                     )}
+                    {isPro && (
+                      <p className="font-body text-xs text-ink/40 mt-2 leading-snug">
+                        Got a code? Apply it at checkout for a special launch discount.
+                      </p>
+                    )}
                   </div>
 
                   {/* Features */}
@@ -122,16 +128,11 @@ export default function PricingPage() {
                       </WobblyButton>
                     </Link>
                   ) : (
-                    <form action={`/api/stripe/checkout?plan=${tier}`} method="POST">
-                      <WobblyButton
-                        variant={isPro ? 'primary' : 'secondary'}
-                        size="md"
-                        className="w-full"
-                        type="submit"
-                      >
-                        Upgrade to {plan.name}
-                      </WobblyButton>
-                    </form>
+                    <CheckoutButton
+                      tier={tier}
+                      label={isPro ? `Get ${plan.name}` : `Upgrade to ${plan.name}`}
+                      variant={isPro ? 'primary' : 'secondary'}
+                    />
                   )}
                 </div>
               </div>
@@ -142,8 +143,8 @@ export default function PricingPage() {
 
       {/* Footer note */}
       <p className="font-body text-sm text-ink/40 text-center mt-16">
-        All plans include a 14-day free trial. Cancel anytime.
-        {' '}
+        Upgrade or downgrade any time &middot; Cancel anytime
+        {' · '}
         <Link href="/dashboard" className="underline hover:text-ink transition-colors">
           Back to dashboard
         </Link>

@@ -41,6 +41,7 @@ export async function updateSession(request: NextRequest) {
   // Redirect unauthenticated users away from dashboard.
   const isProtectedRoute =
     request.nextUrl.pathname.startsWith('/dashboard') ||
+    request.nextUrl.pathname.startsWith('/projects') ||
     request.nextUrl.pathname.startsWith('/settings')
 
   const isAuthRoute =

@@ -6,6 +6,7 @@
 
 import React from 'react'
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import {
   ArrowRight,
   Check,
@@ -28,6 +29,7 @@ import ThreeStepMagic from '@/components/landing/ThreeStepMagic'
 import ClientPortalPreview from '@/components/landing/ClientPortalPreview'
 import CheckoutButton from '@/components/CheckoutButton'
 import LandingNav from '@/components/landing/LandingNav'
+import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
   alternates: { canonical: '/' },
@@ -44,7 +46,12 @@ const GRAPH_BG: React.CSSProperties = {
   backgroundSize: '28px 28px',
 }
 
-export default function Home() {
+export default async function Home() {
+  // Authenticated users go straight to the dashboard
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) redirect('/dashboard')
+
   return (
     <main className="min-h-screen bg-paper relative overflow-x-hidden" style={GRAPH_BG}>
 

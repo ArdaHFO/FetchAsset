@@ -62,19 +62,19 @@ export default function LaunchBanner() {
             border: '1.5px solid rgba(255,255,255,0.3)',
           }}
         >
-          Discount code &ldquo;<strong>{PROMO_CODE}</strong>&rdquo; saved! It will be applied at checkout. 🚀
+          Discount code &ldquo;<strong>{PROMO_CODE}</strong>&rdquo; saved! Applied automatically at checkout. 🚀
         </div>
       )}
 
       <span className="font-body text-sm leading-snug">
-        🚀 <strong>Launch Special:</strong> Use code&nbsp;
+        🚀 <strong>First 100 users only:</strong> Use code&nbsp;
         <code
           className="font-body font-bold bg-white/15 px-2 py-0.5 tracking-wider"
           style={{ borderRadius: '6px' }}
         >
           {PROMO_CODE}
         </code>
-        &nbsp;for 50% off your first 3 months!
+        &nbsp;for 50% off — first login, first month free!
       </span>
       <button
         type="button"

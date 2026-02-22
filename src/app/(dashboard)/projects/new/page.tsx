@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils'
 import { capture, EVENTS } from '@/lib/posthog'
 
 //  Types 
-type RequestType = 'file' | 'text' | 'password' | 'multiple_choice' | 'url'
+type RequestType = 'file' | 'text' | 'password' | 'multiple_choice' | 'url' | 'custom'
 
 interface AssetItem {
   id: string
@@ -26,6 +26,7 @@ interface AssetItem {
   max_size_mb: number
   custom_instructions: string
   naming_rule: boolean
+  quantity: number
 }
 
 interface ProjectForm {
@@ -58,6 +59,7 @@ const REQUEST_TYPES: { value: RequestType; label: string; emoji: string }[] = [
   { value: 'url',             label: 'URL / Link',     emoji: '' },
   { value: 'password',        label: 'Password/Token', emoji: '' },
   { value: 'multiple_choice', label: 'Multiple Choice',emoji: '' },
+  { value: 'custom',          label: 'Custom Request', emoji: '✏️' },
 ]
 
 const FILE_TYPES = ['SVG', 'PNG', 'JPG', 'PDF', 'AI', 'EPS', 'DOCX', 'MP4', 'ZIP']
@@ -137,6 +139,7 @@ function makeAsset(partial: Partial<AssetItem> = {}): AssetItem {
     max_size_mb: 50,
     custom_instructions: '',
     naming_rule: false,
+    quantity: 1,
     ...partial,
   }
 }
@@ -517,12 +520,17 @@ function StepAssets({
                 <span className="flex-1 font-body text-sm text-ink truncate">
                   {item.title || <span className="text-ink/35 italic">Asset {idx + 1}</span>}
                 </span>
+                {item.quantity > 1 && (
+                  <span className="font-body text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 flex-shrink-0" style={{ borderRadius: '255px' }}>
+                    ×{item.quantity}
+                  </span>
+                )}
                 {item.required && (
                   <span className="font-body text-[10px] text-accent border border-accent/40 px-1.5 py-0.5 flex-shrink-0" style={{ borderRadius: '255px' }}>
                     required
                   </span>
                 )}
-                {item.allowed_file_types.length > 0 && (
+                {item.request_type !== 'custom' && item.allowed_file_types.length > 0 && (
                   <span className="font-body text-[10px] text-ink/40 flex-shrink-0 hidden sm:block">
                     {item.allowed_file_types.slice(0, 3).join(', ')}{item.allowed_file_types.length > 3 ? '' : ''}
                   </span>
@@ -568,6 +576,31 @@ function StepAssets({
                           className="flex-1 min-w-0 px-3 py-1.5 font-body text-sm text-ink bg-paper border-2 border-ink/40 outline-none focus:border-ink transition-all"
                           style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
                         />
+                      </div>
+
+                      {/* Quantity stepper */}
+                      <div className="flex items-center gap-3">
+                        <span className="font-body text-xs text-ink/50 uppercase tracking-wider">Quantity</span>
+                        <div className="flex items-center gap-1.5 ml-auto">
+                          <button
+                            type="button"
+                            onClick={() => update(item.id, { quantity: Math.max(1, item.quantity - 1) })}
+                            disabled={item.quantity <= 1}
+                            className="w-6 h-6 flex items-center justify-center border-2 border-ink/40 font-body text-sm text-ink hover:border-ink disabled:opacity-30 transition-all"
+                            style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+                          >−</button>
+                          <span className="font-heading text-base text-ink w-5 text-center">{item.quantity}</span>
+                          <button
+                            type="button"
+                            onClick={() => update(item.id, { quantity: Math.min(10, item.quantity + 1) })}
+                            disabled={item.quantity >= 10}
+                            className="w-6 h-6 flex items-center justify-center border-2 border-ink/40 font-body text-sm text-ink hover:border-ink disabled:opacity-30 transition-all"
+                            style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+                          >+</button>
+                        </div>
+                        {item.quantity > 1 && (
+                          <p className="font-body text-xs text-blue-600">{item.quantity} separate upload slots will be created</p>
+                        )}
                       </div>
 
                       {/* AI Suggest button  only for file type */}
@@ -641,6 +674,16 @@ function StepAssets({
                               ))}
                             </div>
                           </div>
+                        </div>
+                      )}
+
+                      {/* Custom request type notice */}
+                      {item.request_type === 'custom' && (
+                        <div
+                          className="p-3 bg-[#fffde7] border-2 border-ink/20 font-body text-xs text-ink/70"
+                          style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
+                        >
+                          ✏️ <strong>Custom request</strong> — describe what you need in the instructions below. The client can upload any file type or paste text.
                         </div>
                       )}
 
@@ -760,7 +803,7 @@ function StepReview({ form, items }: { form: ProjectForm; items: AssetItem[] }) 
 
         <div>
           <p className="font-body text-xs text-ink/40 uppercase tracking-wider mb-1">
-            Asset requests ({items.length})
+            Asset requests ({items.reduce((sum, it) => sum + (it.quantity ?? 1), 0)} total)
           </p>
           {items.length === 0 ? (
             <p className="font-body text-sm text-ink/40">None added.</p>
@@ -772,7 +815,10 @@ function StepReview({ form, items }: { form: ProjectForm; items: AssetItem[] }) 
                     {REQUEST_TYPES.find((o) => o.value === it.request_type)?.emoji ?? ''}
                   </span>
                   <span className="flex-1">{it.title || <span className="italic text-ink/35">Unnamed</span>}</span>
-                  {it.allowed_file_types.length > 0 && (
+                  {it.quantity > 1 && (
+                    <span className="font-body text-xs font-bold text-blue-700 flex-shrink-0">×{it.quantity}</span>
+                  )}
+                  {it.request_type !== 'custom' && it.allowed_file_types.length > 0 && (
                     <span className="font-body text-xs text-ink/35">{it.allowed_file_types.join(', ')}</span>
                   )}
                   {it.required && <span className="text-xs text-accent ml-auto flex-shrink-0">required</span>}
@@ -828,17 +874,24 @@ export default function NewProjectPage() {
           auto_reminder: form.auto_reminder,
           contact_method: form.contact_method || null,
           contact_value: form.contact_value.trim() || null,
-          assets: assets.filter((a) => a.title.trim()).map((a, i) => ({
-            title: a.title.trim(),
-            description: a.description.trim() || null,
-            request_type: a.request_type,
-            required: a.required,
-            sort_order: i,
-            allowed_file_types: a.allowed_file_types.length > 0 ? a.allowed_file_types.map((t) => t.toLowerCase()) : null,
-            max_file_size_mb: a.max_size_mb,
-            custom_instructions: a.custom_instructions.trim() || null,
-            naming_rule: a.naming_rule || form.global_naming_rule,
-          })),
+          assets: assets.filter((a) => a.title.trim()).flatMap((a, i) => {
+            // Expand quantity into N separate requests
+            const dbType = a.request_type === 'custom' ? 'file' : a.request_type
+            const count = Math.max(1, a.quantity ?? 1)
+            return Array.from({ length: count }, (_, qi) => ({
+              title: count > 1 ? `${a.title.trim()} (${qi + 1}/${count})` : a.title.trim(),
+              description: a.description.trim() || null,
+              request_type: dbType,
+              required: a.required,
+              sort_order: i * 10 + qi,
+              allowed_file_types: a.request_type !== 'custom' && a.allowed_file_types.length > 0
+                ? a.allowed_file_types.map((t) => t.toLowerCase())
+                : null,
+              max_file_size_mb: a.max_size_mb,
+              custom_instructions: a.custom_instructions.trim() || null,
+              naming_rule: a.naming_rule || form.global_naming_rule,
+            }))
+          }),
         }),
       })
       const data = await res.json()

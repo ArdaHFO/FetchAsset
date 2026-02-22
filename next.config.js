@@ -30,13 +30,13 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       // Next.js requires unsafe-inline for its runtime scripts; nonces are the stricter alternative
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://eu-assets.i.posthog.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       // Allow images from Supabase storage + data URIs + blob (file previews)
       `img-src 'self' data: blob: https://${SUPABASE_HOST} https://*.supabase.co`,
-      // API connections: Supabase (REST + realtime WS), Stripe, Groq, Resend (server-side only)
-      `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https://*.supabase.co https://api.stripe.com https://js.stripe.com`,
+      // API connections: Supabase (REST + realtime WS), Stripe, Groq, Resend (server-side only), PostHog analytics
+      `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST} https://*.supabase.co https://api.stripe.com https://js.stripe.com https://eu-assets.i.posthog.com https://eu.i.posthog.com`,
       // Stripe checkout iframe
       "frame-src https://js.stripe.com https://hooks.stripe.com",
       "object-src 'none'",

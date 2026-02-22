@@ -4,8 +4,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 export const metadata: Metadata = {
-  title: 'Sign In',
-  description: 'Sign in to FetchAsset to manage your client onboarding portals.',
+  title: 'Sign In / Sign Up',
+  description: 'Sign in or create your free FetchAsset account. No password needed — we send you a magic link.',
   robots: { index: true, follow: true },
   alternates: { canonical: '/login' },
 }

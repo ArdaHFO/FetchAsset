@@ -6,10 +6,9 @@ import { Menu, X } from 'lucide-react'
 import { WobblyButton } from '@/components/ui'
 
 const NAV_LINKS = [
-  { href: '#how', label: 'How It Works' },
-  { href: '#how',      label: 'How it works' },
-  { href: '#pricing',  label: 'Pricing' },
-  { href: '#faq',      label: 'FAQ' },
+  { href: '#how',     label: 'How It Works' },
+  { href: '#pricing', label: 'Pricing' },
+  { href: '#faq',     label: 'FAQ' },
 ]
 
 export default function LandingNav() {
@@ -32,10 +31,16 @@ export default function LandingNav() {
           ))}
         </div>
 
-        {/* Right: hamburguer (mobile) + CTA */}
+        {/* Right: Log In text link + Get Started CTA */}
         <div className="flex items-center gap-3">
+          <Link
+            href="/login"
+            className="hidden sm:block font-body text-sm text-ink/60 hover:text-ink transition-colors"
+          >
+            Log In
+          </Link>
           <Link href="/login">
-            <WobblyButton size="sm">Start Free</WobblyButton>
+            <WobblyButton size="sm">Get Started Free</WobblyButton>
           </Link>
           <button
             type="button"
@@ -63,6 +68,14 @@ export default function LandingNav() {
               {l.label}
             </a>
           ))}
+          <Link
+            href="/login"
+            onClick={() => setOpen(false)}
+            className="font-body text-base text-ink px-3 py-2.5 font-semibold hover:bg-muted/40 transition-colors"
+            style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
+          >
+            🔑 Log In / Sign Up
+          </Link>
         </div>
       )}
     </nav>

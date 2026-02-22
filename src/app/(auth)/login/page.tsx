@@ -73,10 +73,10 @@ export default function LoginPage() {
           <div className="mb-7 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <Image src="/meta-llama.png" alt="AI" width={20} height={20} />
-              <h1 className="font-heading text-2xl text-ink">Welcome back!</h1>
+              <h1 className="font-heading text-2xl text-ink">Sign in or get started</h1>
             </div>
             <p className="font-body text-sm text-ink/60">
-              Enter your email and we&apos;ll send you a magic link — no password needed ✨
+              Enter your email — we&apos;ll send a magic link. New accounts are created automatically. No password needed ✨
             </p>
           </div>
 
@@ -132,7 +132,10 @@ export default function LoginPage() {
 
           {/* Divider note */}
           <p className="mt-6 font-body text-xs text-center text-ink/40">
-            New here? An account will be created automatically.
+            By signing up you agree to our{' '}
+            <a href="/terms-of-service" className="underline hover:text-ink/60">Terms</a>
+            {' '}&amp;{' '}
+            <a href="/privacy-policy" className="underline hover:text-ink/60">Privacy Policy</a>.
           </p>
         </WobblyCardContent>
       </WobblyCard>

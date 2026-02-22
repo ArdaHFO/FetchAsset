@@ -17,7 +17,7 @@ export function StatCard({ label, value, icon: Icon, flavor = 'default', rotate 
       <WobblyCardContent className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <p className="font-body text-xs text-ink/50 uppercase tracking-wide">{label}</p>
+            <p className="font-body text-xs text-ink/65 uppercase tracking-wide">{label}</p>
             <p className="font-heading text-3xl text-ink leading-none">{value}</p>
             {trend && (
               <p

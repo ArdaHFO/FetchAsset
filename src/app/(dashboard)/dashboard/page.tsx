@@ -59,7 +59,7 @@ export default async function DashboardPage() {
           <h1 className="font-heading text-3xl text-ink">
             Hey, {firstName}! 👋
           </h1>
-          <p className="font-body text-sm text-ink/55 mt-1">
+          <p className="font-body text-sm text-ink/70 mt-1">
             Here&apos;s what&apos;s happening with your projects today.
           </p>
         </div>
@@ -100,7 +100,7 @@ export default async function DashboardPage() {
           >
             <FolderKanban size={36} className="text-ink/20 mb-3" />
             <p className="font-heading text-lg text-ink/50">No projects yet</p>
-            <p className="font-body text-sm text-ink/35 mb-5">
+            <p className="font-body text-sm text-ink/60 mb-5">
               Create your first project and generate a magic link for your client.
             </p>
             <WobblyButton variant="primary" size="sm" asChild>

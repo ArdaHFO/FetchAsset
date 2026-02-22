@@ -42,7 +42,7 @@ export default async function SettingsPage({
     <div className="flex flex-col gap-6 max-w-4xl">
       <div>
         <h1 className="font-heading text-3xl text-ink">Settings</h1>
-        <p className="font-body text-sm text-ink/55 mt-1">Manage your account, billing, and portal branding.</p>
+        <p className="font-body text-sm text-ink/70 mt-1">Manage your account, billing, and portal branding.</p>
       </div>
 
       {didJustUpgrade && (

@@ -233,6 +233,49 @@ export async function sendApprovalToClient(opts: ApprovalEmailOpts): Promise<voi
   })
 }
 
+// ── Email: Auto-nudge reminder to client ─────────────────────────────────────
+
+interface NudgeEmailOpts {
+  clientEmail: string
+  clientName: string
+  projectTitle: string
+  clientDeadline: string        // The earlier, client-visible deadline
+  missingItems: string[]        // List of missing asset titles
+  portalUrl: string
+  hoursUntilDeadline: number    // 24 or 48
+}
+
+export async function sendNudgeToClient(opts: NudgeEmailOpts): Promise<void> {
+  const urgency = opts.hoursUntilDeadline <= 24 ? '🚨 Final Reminder' : '⏰ Friendly Reminder'
+  const timeLeft = opts.hoursUntilDeadline <= 24 ? 'less than 24 hours' : 'about 48 hours'
+
+  const missingList = opts.missingItems
+    .map((item) => `<li style="margin:4px 0;font-size:14px;color:#2d2d2d;">${item}</li>`)
+    .join('')
+
+  const html = shell(
+    `${urgency}: Files still needed for ${opts.projectTitle}`,
+    `
+      ${h1(`${urgency} — Files still needed! 📎`)}
+      ${p(`Hey ${opts.clientName}, just a quick nudge!`)}
+      ${p(`The deadline for <strong>${opts.projectTitle}</strong> is in <strong>${timeLeft}</strong> (${opts.clientDeadline}), and we're still waiting on:`)}
+      <ul style="margin:12px 0 8px 4px;padding-left:20px;">
+        ${missingList}
+      </ul>
+      ${infoBox(`<strong>Deadline:</strong> ${opts.clientDeadline}<br/><strong>Project:</strong> ${opts.projectTitle}`)}
+      ${p("Uploading takes less than 2 minutes — just click the button below!", true)}
+      ${ctaButton(opts.portalUrl, 'Upload Now →')}
+    `
+  )
+
+  await send({
+    to: opts.clientEmail,
+    toName: opts.clientName,
+    subject: `${urgency}: Files needed for "${opts.projectTitle}" — deadline in ${timeLeft}`,
+    html,
+  })
+}
+
 // ── Email: Client asset rejected (needs revision) ───────────────────────────
 
 interface RejectionEmailOpts {

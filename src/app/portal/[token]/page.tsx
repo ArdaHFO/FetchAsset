@@ -1,7 +1,8 @@
+import React from 'react'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { PortalChecklist } from '@/components/portal/portal-checklist'
-import type { Project, AssetRequest, Submission } from '@/lib/supabase/types'
+import type { Project, AssetRequest, Submission, Profile, PlanTier } from '@/lib/supabase/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,21 +10,66 @@ interface PageProps {
   params: { token: string }
 }
 
+// ── Wobble radius helper ─────────────────────────────────────────
+function getWobblyRadius(intensity: number): string {
+  if (intensity < 10) return '6px'
+  const t = intensity / 100
+  const a = Math.round(80 + t * 140)
+  const b = Math.round(5 + t * 40)
+  const c = Math.round(70 + t * 150)
+  const d = Math.round(5 + t * 10)
+  const e = Math.round(5 + t * 35)
+  const f = Math.round(60 + t * 165)
+  return `${a}px ${b}px ${c}px ${d}px / ${e}px ${f}px ${b}px ${a}px`
+}
+
 export default async function PortalPage({ params }: PageProps) {
   const admin = createAdminClient()
 
-  // Fetch project by magic token (SECURITY DEFINER function)
-  // Falls back to direct query with service role
+  // ── Fetch project by token ─────────────────────────────────────
   const { data: projectRows } = await (admin as any)
     .rpc('get_project_by_token', { token: params.token })
 
-  const project: Project | null = Array.isArray(projectRows) && projectRows.length > 0
-    ? projectRows[0] as Project
-    : null
+  const project: Project | null =
+    Array.isArray(projectRows) && projectRows.length > 0
+      ? (projectRows[0] as Project)
+      : null
 
   if (!project) notFound()
 
-  // Fetch asset requests
+  // ── Fetch owner branding ───────────────────────────────────────
+  const { data: profileRow } = await (admin as any)
+    .from('profiles')
+    .select('full_name, plan, logo_url, brand_color, custom_welcome_msg, preferred_font, wobble_intensity')
+    .eq('id', project.owner_id)
+    .single()
+
+  const ownerProfile = profileRow as Partial<Profile> | null
+  const ownerPlan: PlanTier = (ownerProfile?.plan as PlanTier) ?? 'free'
+  const isPaidPlan = ownerPlan !== 'free'
+
+  const logoUrl: string | null = ownerProfile?.logo_url ?? null
+  const brandColor: string = ownerProfile?.brand_color ?? '#e63946'
+  const welcomeMsg: string =
+    ownerProfile?.custom_welcome_msg?.trim() ||
+    project.custom_message?.trim() ||
+    project.title
+  const preferredFont: 'sketchy' | 'professional' =
+    (ownerProfile?.preferred_font as 'sketchy' | 'professional') ?? 'sketchy'
+  const wobbleIntensity: number = ownerProfile?.wobble_intensity ?? 50
+  const agencyName: string = ownerProfile?.full_name ?? 'FetchAsset'
+  const wobbleR = getWobblyRadius(wobbleIntensity)
+
+  const fontHeading =
+    preferredFont === 'professional'
+      ? "'Inter', 'Roboto', sans-serif"
+      : "'Kalam', cursive"
+  const fontBody =
+    preferredFont === 'professional'
+      ? "'Inter', 'Roboto', sans-serif"
+      : "'Patrick Hand', cursive"
+
+  // ── Fetch asset requests ───────────────────────────────────────
   const { data: requestRows } = await (admin as any)
     .from('asset_requests')
     .select('*')
@@ -32,7 +78,7 @@ export default async function PortalPage({ params }: PageProps) {
 
   const requests: AssetRequest[] = (requestRows ?? []) as AssetRequest[]
 
-  // Fetch existing submissions for this project
+  // ── Fetch existing submissions ─────────────────────────────────
   const { data: submissionRows } = await (admin as any)
     .from('submissions')
     .select('*')
@@ -40,7 +86,6 @@ export default async function PortalPage({ params }: PageProps) {
 
   const submissions: Submission[] = (submissionRows ?? []) as Submission[]
 
-  // Build a map of requestId → latest submission
   const submissionMap: Record<string, Submission> = {}
   for (const sub of submissions) {
     submissionMap[sub.asset_request_id] = sub
@@ -48,88 +93,191 @@ export default async function PortalPage({ params }: PageProps) {
 
   const total = requests.length
   const submitted = requests.filter((r) => submissionMap[r.id]).length
+  const pct = total > 0 ? Math.round((submitted / total) * 100) : 0
+  const isDone = submitted === total && total > 0
+
+  // ── Client-visible deadline ─────────────────────────────────────
+  const clientVisibleDeadline: string | null = (() => {
+    if (!project.due_date) return null
+    const bufferDays: number = (project as any).buffer_days ?? 0
+    const d = new Date(project.due_date)
+    d.setDate(d.getDate() - bufferDays)
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+  })()
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Project greeting card */}
-      <div
-        className="p-6 border-2 border-ink/20 bg-postit"
-        style={{
-          borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px',
-          boxShadow: '4px 4px 0px 0px #2d2d2d',
-          transform: 'rotate(-0.5deg)',
-        }}
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ fontFamily: fontBody } as React.CSSProperties}
+    >
+      {/* ── Top bar ──────────────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-30 flex items-center justify-between px-5 py-3 border-b-2 border-ink/10"
+        style={{ background: 'rgba(253,251,247,0.96)', backdropFilter: 'blur(8px)' }}
       >
-        <p className="font-body text-xs text-ink/50 uppercase tracking-wider mb-1">
-          Asset Collection Portal
-        </p>
-        <h1 className="font-heading text-3xl text-ink leading-tight">
-          {project.title}
-        </h1>
-        {project.client_name && (
-          <p className="font-body text-sm text-ink/65 mt-1">
-            Hey, {project.client_name}! 👋
-          </p>
-        )}
-        {project.custom_message && (
-          <p className="font-body text-sm text-ink/75 mt-3 p-3 bg-paper/60 rounded-[8px_2px_8px_2px/2px_8px_2px_8px]">
-            {project.custom_message}
-          </p>
-        )}
-      </div>
+        <div className="flex items-center gap-3">
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt={agencyName}
+              className="h-9 w-auto object-contain max-w-[160px]"
+            />
+          ) : (
+            <span
+              className="select-none"
+              style={{ fontFamily: fontHeading, fontSize: '22px', fontWeight: 700, color: '#2d2d2d' }}
+            >
+              {agencyName === 'FetchAsset' ? (
+                <>Fetch<span style={{ color: brandColor }}>Asset</span></>
+              ) : agencyName}
+            </span>
+          )}
+        </div>
 
-      {/* Progress bar */}
-      {total > 0 && (
-        <div className="flex flex-col gap-2">
-          <div className="flex justify-between items-center">
-            <span className="font-body text-sm text-ink/60">
-              {submitted} of {total} asset{total !== 1 ? 's' : ''} submitted
-            </span>
-            <span className="font-body text-sm font-medium text-ink">
-              {Math.round((submitted / total) * 100)}%
-            </span>
-          </div>
+        {/* Progress pill */}
+        {total > 0 && (
           <div
-            className="h-3 w-full bg-muted overflow-hidden"
-            style={{ borderRadius: '12px 2px 12px 2px / 2px 12px 2px 12px', boxShadow: '2px 2px 0px #2d2d2d' }}
+            className="hidden sm:flex items-center gap-2 px-3 py-1.5 border-2 border-ink/15"
+            style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
           >
             <div
-              className="h-full bg-ink transition-all duration-500"
-              style={{
-                width: `${Math.round((submitted / total) * 100)}%`,
-                borderRadius: '12px 2px 12px 2px / 2px 12px 2px 12px',
-              }}
+              className="w-2 h-2 rounded-full"
+              style={{ background: isDone ? '#22c55e' : brandColor }}
             />
+            <span className="text-xs font-bold text-ink" style={{ fontFamily: fontBody }}>
+              {isDone ? 'Complete 🎉' : `${pct}% · ${total - submitted} to go`}
+            </span>
           </div>
-          {submitted === total && total > 0 && (
-            <p className="font-body text-sm text-ink/60 text-center pt-1">
-              ✓ All assets submitted — thank you!
+        )}
+
+        <span className="text-xs text-ink/35" style={{ fontFamily: fontBody }}>🔒 Secure</span>
+      </header>
+
+      {/* ── Main content ─────────────────────────────────────────── */}
+      <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-8 md:px-6 flex flex-col gap-7">
+
+        {/* Project greeting card */}
+        <div
+          className="p-6 border-2 border-ink/20 bg-postit"
+          style={{
+            borderRadius: wobbleR,
+            boxShadow: '4px 4px 0px 0px #2d2d2d',
+            transform: 'rotate(-0.5deg)',
+          }}
+        >
+          <p className="text-xs text-ink/50 uppercase tracking-wider mb-1" style={{ fontFamily: fontBody }}>
+            Asset Collection Portal
+          </p>
+          <h1 className="text-3xl text-ink leading-tight" style={{ fontFamily: fontHeading }}>
+            {welcomeMsg}
+          </h1>
+          {project.client_name && (
+            <p className="text-sm text-ink/65 mt-1" style={{ fontFamily: fontBody }}>
+              Hey, {project.client_name}! 👋
+            </p>
+          )}
+          {clientVisibleDeadline && (
+            <p className="text-sm text-ink/70 mt-3 flex items-center gap-1.5" style={{ fontFamily: fontBody }}>
+              📅 <strong>Deadline:</strong>&nbsp;{clientVisibleDeadline}
             </p>
           )}
         </div>
-      )}
 
-      {total === 0 && (
-        <div
-          className="py-12 text-center border-2 border-dashed border-ink/20"
-          style={{ borderRadius: '20px 5px 20px 5px / 5px 20px 5px 20px' }}
-        >
-          <p className="font-body text-sm text-ink/45">
-            No assets have been requested yet. Check back soon!
+        {/* Progress bar */}
+        {total > 0 && (
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-ink/60" style={{ fontFamily: fontBody }}>
+                {submitted} of {total} asset{total !== 1 ? 's' : ''} submitted
+              </span>
+              <span className="text-sm font-bold text-ink" style={{ fontFamily: fontBody }}>{pct}%</span>
+            </div>
+            <div
+              className="h-4 w-full bg-muted overflow-hidden"
+              style={{ borderRadius: '12px 2px 12px 2px / 2px 12px 2px 12px', boxShadow: '2px 2px 0px #2d2d2d' }}
+            >
+              <div
+                className="h-full transition-all duration-700 ease-in-out relative"
+                style={{
+                  width: `${pct}%`,
+                  background: isDone ? '#22c55e' : brandColor,
+                  borderRadius: '12px 2px 12px 2px / 2px 12px 2px 12px',
+                }}
+              >
+                <div
+                  className="absolute inset-0 opacity-20"
+                  style={{
+                    backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.5) 4px, rgba(255,255,255,0.5) 5px)',
+                  }}
+                />
+              </div>
+            </div>
+            {pct > 0 && (
+              <p
+                className="text-sm text-center pt-0.5"
+                style={{
+                  fontFamily: fontBody,
+                  color: isDone ? '#16a34a' : pct >= 60 ? '#b45309' : '#6b7280',
+                }}
+              >
+                {isDone
+                  ? "🎉 All done! You're amazing — thank you!"
+                  : pct >= 60
+                  ? `${pct}% — Almost there! Just a little more 💪`
+                  : `${pct}% — Great start! Keep going ✨`}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {total === 0 && (
+          <div
+            className="py-12 text-center border-2 border-dashed border-ink/20"
+            style={{ borderRadius: wobbleR }}
+          >
+            <p className="text-sm text-ink/45" style={{ fontFamily: fontBody }}>
+              No assets have been requested yet. Check back soon!
+            </p>
+          </div>
+        )}
+
+        {/* Interactive checklist */}
+        {requests.length > 0 && (
+          <PortalChecklist
+            requests={requests}
+            submissionMap={submissionMap}
+            projectId={project.id}
+            token={params.token}
+            clientName={project.client_name ?? ''}
+            accentColor={brandColor}
+            wobbleIntensity={wobbleIntensity}
+            fontBody={fontBody}
+            fontHeading={fontHeading}
+          />
+        )}
+      </main>
+
+      {/* ── Footer ───────────────────────────────────────────────── */}
+      <footer
+        className="py-5 text-center border-t-2 border-ink/10"
+        style={{ background: 'rgba(253,251,247,0.8)' }}
+      >
+        {!isPaidPlan ? (
+          <p className="text-xs text-ink/30" style={{ fontFamily: fontBody }}>
+            Powered by{' '}
+            <a href="https://fetchasset.app" target="_blank" rel="noreferrer" className="hover:text-ink/60 transition-colors">
+              FetchAsset
+            </a>
+            {' '}· Your files are encrypted in transit and at rest.
           </p>
-        </div>
-      )}
-
-      {/* Interactive checklist */}
-      {requests.length > 0 && (
-        <PortalChecklist
-          requests={requests}
-          submissionMap={submissionMap}
-          projectId={project.id}
-          token={params.token}
-          clientName={project.client_name ?? ''}
-        />
-      )}
+        ) : (
+          <p className="text-xs text-ink/25" style={{ fontFamily: fontBody }}>
+            Your files are encrypted in transit and at rest. 🔒
+          </p>
+        )}
+      </footer>
     </div>
   )
 }

@@ -61,6 +61,12 @@ export interface Profile {
   white_label_primary_color: string | null
   white_label_accent_color: string | null
   white_label_company_name: string | null
+  // Agency Branding Hub
+  logo_url: string | null              // uploaded agency logo
+  brand_color: string | null           // e.g. '#e63946'
+  custom_welcome_msg: string | null    // custom portal heading
+  preferred_font: 'sketchy' | 'professional' | null  // portal font
+  wobble_intensity: number | null      // 0–100, default 50
 }
 
 export interface Project {
@@ -75,7 +81,9 @@ export interface Project {
   status: ProjectStatus
   magic_token: string               // unique token for client portal URL
   magic_token_expires_at: string | null
-  due_date: string | null
+  due_date: string | null           // internal deadline (real deadline)
+  buffer_days: number               // days to subtract for client-visible deadline
+  auto_reminder: boolean            // enable The Nudger™ email reminders
   notes: string | null              // internal agency notes
   custom_message: string | null     // shown to client on portal open
   // Computed / join fields (not in DB, added by queries)
@@ -98,6 +106,9 @@ export interface AssetRequest {
   allowed_file_types: string[] | null  // e.g. ['svg', 'png', 'pdf']
   max_file_size_mb: number | null
   multiple_files: boolean
+  // Smart Builder extras
+  custom_instructions: string | null  // Agency notes shown to client
+  naming_rule: boolean                // Auto-rename uploaded files
   // Multiple choice options
   choices: string[] | null
   // Example reference
@@ -130,6 +141,8 @@ export interface Submission {
   ai_audit_status: AiAuditStatus
   // Client note
   client_note: string | null
+  // Version control (multiple uploads for the same request)
+  version: number                   // 1-based; latest upload increments this
   // Computed
   comments?: Comment[]
 }
@@ -169,6 +182,11 @@ export type ProfileUpdate = Partial<
     | 'white_label_primary_color'
     | 'white_label_accent_color'
     | 'white_label_company_name'
+    | 'logo_url'
+    | 'brand_color'
+    | 'custom_welcome_msg'
+    | 'preferred_font'
+    | 'wobble_intensity'
   >
 >
 
@@ -182,7 +200,7 @@ export type AssetRequestInsert = Omit<AssetRequest, 'id' | 'created_at' | 'updat
 
 export type AssetRequestUpdate = Partial<Omit<AssetRequest, 'id' | 'created_at' | 'project_id' | 'submission'>>
 
-export type SubmissionInsert = Omit<Submission, 'id' | 'created_at' | 'updated_at' | 'status' | 'rejection_reason' | 'ai_audit_result' | 'ai_audit_status' | 'comments'>
+export type SubmissionInsert = Omit<Submission, 'id' | 'created_at' | 'updated_at' | 'status' | 'rejection_reason' | 'ai_audit_result' | 'ai_audit_status' | 'comments' | 'version'>
 
 export type CommentInsert = Omit<Comment, 'id' | 'created_at'>
 

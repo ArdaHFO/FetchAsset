@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import React from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'Sign In',
@@ -15,23 +17,26 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       style={{ background: 'var(--color-paper, #fdfbf7)' }}
     >
       {/* Logo */}
-      <div className="mb-8 flex flex-col items-center gap-2">
-        <span
-          className="font-heading text-4xl text-ink select-none"
-          style={{
-            letterSpacing: '-0.5px',
-            textShadow: '2px 2px 0px #e5e0d8',
-          }}
-        >
-          Fetch<span className="text-accent">Asset</span>
-        </span>
+      <Link href="/" className="mb-8 flex flex-col items-center gap-2 no-underline">
+        <div className="flex items-center gap-2">
+          <Image src="/logo.png" alt="FetchAsset" width={44} height={44} />
+          <span
+            className="font-heading text-4xl text-ink select-none"
+            style={{
+              letterSpacing: '-0.5px',
+              textShadow: '2px 2px 0px #e5e0d8',
+            }}
+          >
+            FetchAsset
+          </span>
+        </div>
         <span
           className="font-body text-sm text-ink/60"
           style={{ letterSpacing: '0.5px' }}
         >
           AI-powered asset onboarding
         </span>
-      </div>
+      </Link>
 
       {/* Page content */}
       <div className="w-full max-w-md">{children}</div>

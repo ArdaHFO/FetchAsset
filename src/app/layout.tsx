@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import { Kalam, Patrick_Hand } from 'next/font/google'
+import { Suspense } from 'react'
 import './globals.css'
+import PostHogProvider from '@/components/PostHogProvider'
+import LaunchBanner from '@/components/LaunchBanner'
 
 // ── Google Fonts ─────────────────────────────────────────────────────
 const kalam = Kalam({
@@ -21,9 +24,9 @@ const patrickHand = Patrick_Hand({
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fetchasset.app'
 const SITE_NAME = 'FetchAsset'
 const TITLE_TEMPLATE = '%s — FetchAsset'
-const DEFAULT_TITLE = 'FetchAsset — AI-Powered Client Onboarding'
+const DEFAULT_TITLE = 'FetchAsset | Stop Chasing Files, Start Your Projects'
 const DEFAULT_DESCRIPTION =
-  'Stop chasing clients for files. FetchAsset creates frictionless asset onboarding portals powered by Llama 3.3 AI — so your agency runs on magic links, not email chaos.'
+  'Stop chasing clients for files. FetchAsset creates passwordless asset-collection portals powered by Llama 3.3 AI — magic links, instant AI audit, and automatic file organisation. Free to start.'
 
 // ── Root Metadata ─────────────────────────────────────────────────────
 export const metadata: Metadata = {
@@ -105,9 +108,11 @@ export const metadata: Metadata = {
   // ── Icons ─────────────────────────────────────────────────────────
   icons: {
     icon: [
-      { url: '/logo.png', type: 'image/png' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/logo.png',    type: 'image/png',       sizes: '32x32' },
     ],
-    apple: [{ url: '/logo.png', sizes: '180x180' }],
+    shortcut: '/favicon.svg',
+    apple:    [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
   },
 
   // ── Manifest ──────────────────────────────────────────────────────
@@ -143,7 +148,12 @@ export default function RootLayout({
       className={`${kalam.variable} ${patrickHand.variable}`}
     >
       <body className="font-body bg-paper text-ink antialiased">
-        {children}
+        <Suspense fallback={null}>
+          <PostHogProvider>
+            <LaunchBanner />
+            {children}
+          </PostHogProvider>
+        </Suspense>
       </body>
     </html>
   )

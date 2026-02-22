@@ -12,6 +12,7 @@ import {
   ToggleLeft,
   Paperclip,
   Send,
+  Loader2,
 } from 'lucide-react'
 import { FileUploader } from '@/components/portal/file-uploader'
 import { WobblyButton, WobblyCard, WobblyCardContent } from '@/components/ui'
@@ -37,6 +38,10 @@ interface PortalChecklistProps {
   projectId: string
   token: string
   clientName: string
+  accentColor?: string
+  wobbleIntensity?: number
+  fontBody?: string
+  fontHeading?: string
 }
 
 // ── Single request item ───────────────────────────────────────────
@@ -48,6 +53,10 @@ function RequestItem({
   token,
   clientName,
   index,
+  accentColor = '#e63946',
+  wobbleIntensity = 50,
+  fontBody,
+  fontHeading,
 }: {
   request: AssetRequest
   existing: Submission | null
@@ -55,7 +64,23 @@ function RequestItem({
   token: string
   clientName: string
   index: number
+  accentColor?: string
+  wobbleIntensity?: number
+  fontBody?: string
+  fontHeading?: string
 }) {
+  function getR(mul = 1): string {
+    const intensity = wobbleIntensity * mul
+    if (intensity < 10) return '6px'
+    const t = intensity / 100
+    const a = Math.round(80 + t * 140)
+    const b = Math.round(5 + t * 40)
+    const c = Math.round(70 + t * 150)
+    const d = Math.round(5 + t * 10)
+    const e = Math.round(5 + t * 35)
+    const f = Math.round(60 + t * 165)
+    return `${a}px ${b}px ${c}px ${d}px / ${e}px ${f}px ${b}px ${a}px`
+  }
   const [open, setOpen] = useState(!existing)
   const [submitted, setSubmitted] = useState<boolean>(!!existing)
   const [submitting, setSubmitting] = useState(false)
@@ -113,7 +138,7 @@ function RequestItem({
           : 'border-ink/30 bg-paper',
         open && !submitted ? 'shadow-[4px_4px_0px_0px_#2d2d2d]' : ''
       )}
-      style={{ borderRadius: '16px 4px 16px 4px / 4px 16px 4px 16px' }}
+      style={{ borderRadius: getR(0.7), fontFamily: fontBody }}
     >
       {/* Header row */}
       <button
@@ -123,7 +148,7 @@ function RequestItem({
         {/* Status icon */}
         <span className="flex-shrink-0">
           {submitted ? (
-            <CheckCircle2 size={20} className="text-ink/60" />
+            <CheckCircle2 size={20} style={{ color: accentColor }} />
           ) : (
             <Circle size={20} className="text-ink/25" />
           )}
@@ -147,8 +172,8 @@ function RequestItem({
             </span>
             {request.required && !submitted && (
               <span
-                className="font-body text-[10px] px-1.5 py-0.5 bg-accent/10 text-accent"
-                style={{ borderRadius: '4px 1px 4px 1px / 1px 4px 1px 4px' }}
+                className="font-body text-[10px] px-1.5 py-0.5"
+                style={{ borderRadius: '4px 1px 4px 1px / 1px 4px 1px 4px', background: `${accentColor}18`, color: accentColor }}
               >
                 required
               </span>
@@ -244,10 +269,14 @@ function RequestItem({
                   className={cn(
                     'flex items-center gap-3 px-4 py-3 border-2 cursor-pointer transition-all',
                     chosenChoice === choice
-                      ? 'border-ink bg-ink text-paper'
+                      ? 'text-white'
                       : 'border-ink/25 hover:border-ink/50'
                   )}
-                  style={{ borderRadius: '10px 2px 10px 2px / 2px 10px 2px 10px' }}
+                  style={{
+                    borderRadius: getR(0.5),
+                    borderColor: chosenChoice === choice ? accentColor : undefined,
+                    background: chosenChoice === choice ? accentColor : undefined,
+                  }}
                 >
                   <input
                     type="radio"
@@ -293,26 +322,28 @@ function RequestItem({
             <p className="font-body text-sm text-accent">{error}</p>
           )}
 
-          {/* Submit button (non-file) */}
+          {/* Submit button (non-file) — branded */}
           {request.request_type !== 'file' && (
-            <WobblyButton
-              variant="primary"
-              size="md"
+            <button
+              type="button"
               onClick={submitValue}
-              loading={submitting}
               disabled={
                 submitting ||
                 (request.request_type === 'multiple_choice' ? !chosenChoice : !valueText.trim())
               }
-              className="w-full"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 font-body font-bold text-white border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                borderRadius: getR(0.8),
+                background: accentColor,
+                borderColor: accentColor,
+                boxShadow: `3px 3px 0px 0px #2d2d2d`,
+              }}
             >
-              {!submitting && (
-                <>
-                  <Send size={14} className="mr-2" />
-                  Submit
-                </>
-              )}
-            </WobblyButton>
+              {submitting
+                ? <Loader2 size={14} className="animate-spin" />
+                : <><Send size={14} />Submit</>
+              }
+            </button>
           )}
 
           {/* Re-submit note */}
@@ -335,6 +366,10 @@ export function PortalChecklist({
   projectId,
   token,
   clientName,
+  accentColor = '#e63946',
+  wobbleIntensity = 50,
+  fontBody,
+  fontHeading,
 }: PortalChecklistProps) {
   const [localClientName, setLocalClientName] = useState(clientName)
   const [nameSet, setNameSet] = useState(!!clientName)
@@ -374,7 +409,7 @@ export function PortalChecklist({
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="font-heading text-xl text-ink">Your asset list</h2>
+      <h2 className="text-xl text-ink" style={{ fontFamily: fontHeading }}>Your asset list</h2>
       {requests.map((req, idx) => (
         <RequestItem
           key={req.id}
@@ -384,6 +419,10 @@ export function PortalChecklist({
           token={token}
           clientName={localClientName}
           index={idx}
+          accentColor={accentColor}
+          wobbleIntensity={wobbleIntensity}
+          fontBody={fontBody}
+          fontHeading={fontHeading}
         />
       ))}
     </div>

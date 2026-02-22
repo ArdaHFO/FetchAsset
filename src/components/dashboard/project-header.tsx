@@ -1,12 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, Check, ExternalLink, MoreVertical, Globe, Mail } from 'lucide-react'
+import { Copy, Check, ExternalLink, MoreVertical, Globe, Mail, Calendar, Info } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { WobblyCard, WobblyCardContent, WobblyButton } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import type { Project, ProjectStatus } from '@/lib/supabase/types'
+
+/** Subtract bufferDays from an ISO date string; return formatted locale string */
+function computeClientDeadline(dueDateIso: string, bufferDays: number): string {
+  const d = new Date(dueDateIso)
+  d.setDate(d.getDate() - bufferDays)
+  return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
 
 const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
   { value: 'draft',     label: 'Draft' },
@@ -160,6 +171,45 @@ export function ProjectHeader({ project, magicUrl }: ProjectHeaderProps) {
                   <ExternalLink size={12} />
                 </a>
               </WobblyButton>
+            </div>
+          </div>
+        )}
+
+        {/* Deadline Buffer Display */}
+        {project.due_date && (
+          <div
+            className="flex items-start gap-3 p-3 bg-[#fffde7] border-2 border-ink/20"
+            style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px' }}
+          >
+            <Calendar size={14} className="text-ink/50 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              {(project.buffer_days ?? 0) > 0 ? (
+                <>
+                  <p className="font-body text-sm text-ink">
+                    <span className="font-semibold">Müşteriye Söylenen:</span>{' '}
+                    {computeClientDeadline(project.due_date, project.buffer_days ?? 0)}{' '}
+                    <span className="text-ink/45">(Gerçek: {fmtDate(project.due_date)})</span>
+                  </p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <Info size={11} className="text-ink/35" />
+                    <p className="font-body text-xs text-ink/45">
+                      {project.buffer_days} günlük buffer aktif — müşteri daha erken tarihi görüyor.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <p className="font-body text-sm text-ink">
+                  <span className="font-semibold">Deadline:</span> {fmtDate(project.due_date)}
+                </p>
+              )}
+              {project.auto_reminder && (
+                <span
+                  className="inline-block mt-1 font-body text-xs px-2 py-0.5 bg-green-50 text-green-700 border border-green-200"
+                  style={{ borderRadius: '255px' }}
+                >
+                  🔔 Nudger aktif
+                </span>
+              )}
             </div>
           </div>
         )}

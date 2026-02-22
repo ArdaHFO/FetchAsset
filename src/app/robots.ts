@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: ['/', '/pricing', '/login', '/verify'],
+        allow: ['/', '/pricing', '/login', '/verify', '/demo', '/privacy-policy', '/terms-of-service', '/cookie-policy'],
         // Block all authenticated / client portal routes from indexing
         disallow: [
           '/dashboard',

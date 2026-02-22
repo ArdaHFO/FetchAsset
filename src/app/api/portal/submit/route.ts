@@ -56,8 +56,45 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'File upload failed. Please try again.' }, { status: 500 })
       }
 
+      // Smart file naming: if naming_rule is enabled on this asset request,
+      // generate a professional filename for display purposes.
+      // Storage path stays the same (original); we just update what's shown.
+      let displayFileName = file.name
+      try {
+        const { data: assetReqForName } = await (admin as any)
+          .from('asset_requests')
+          .select('title, naming_rule')
+          .eq('id', requestId)
+          .single()
+
+        if (assetReqForName?.naming_rule) {
+          const { data: projForName } = await (admin as any)
+            .from('projects')
+            .select('title, client_name')
+            .eq('id', projectId)
+            .single()
+
+          if (projForName) {
+            const ext = file.name.includes('.') ? file.name.split('.').pop() : ''
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+            const slug = (s: string) =>
+              s.trim().replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 30)
+
+            const clientSlug  = slug(projForName.client_name ?? clientName ?? 'Client')
+            const assetSlug   = slug(assetReqForName.title ?? 'Asset')
+            const projectSlug = slug(projForName.title ?? 'Project')
+
+            displayFileName = ext
+              ? `${clientSlug}_${assetSlug}_${projectSlug}_${dateStr}.${ext}`
+              : `${clientSlug}_${assetSlug}_${projectSlug}_${dateStr}`
+          }
+        }
+      } catch (nameErr) {
+        console.warn('[portal/submit] Smart naming error (non-fatal):', nameErr)
+      }
+
       filePath = storagePath
-      fileName = file.name
+      fileName = displayFileName
       fileSizeBytes = file.size
       fileMimeType = file.type
     } else if (requestType !== 'file' && !valueText) {

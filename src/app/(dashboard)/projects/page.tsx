@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Plus, FolderKanban, Search } from 'lucide-react'
+import Image from 'next/image'
+import { Plus, Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { WobblyButton } from '@/components/ui'
 import { ProjectCard } from '@/components/dashboard/project-card'
@@ -80,9 +81,17 @@ export default async function ProjectsPage({ searchParams }: PageProps) {
           className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-ink/20 text-center"
           style={{ borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px' }}
         >
-          <FolderKanban size={40} className="text-ink/20 mb-3" />
-          <p className="font-heading text-lg text-ink/50">
-            {query ? `No projects matching "${query}"` : 'No projects yet'}
+          <div style={{ filter: 'drop-shadow(4px 4px 0px #2d2d2d)' }} className="mb-4">
+            <Image
+              src="/paperclip1.jpeg"
+              alt="Mascot"
+              width={90}
+              height={90}
+              style={{ mixBlendMode: 'multiply', objectFit: 'contain' }}
+            />
+          </div>
+          <p className="font-heading text-lg text-ink/60">
+            {query ? `No projects matching "${query}"` : "It's quiet here… Let's fetch some assets!"}
           </p>
           {!query && (
             <>

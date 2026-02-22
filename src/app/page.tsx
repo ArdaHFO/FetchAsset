@@ -2,13 +2,12 @@
  * FetchAsset — Landing Page
  */
 
+import React from 'react'
 import type { Metadata } from 'next'
 import {
   ArrowRight,
   Zap,
-  FileCheck,
   Users,
-  Upload,
   CheckCircle,
   AlertCircle,
   Mail,
@@ -84,6 +83,20 @@ export default function Home() {
 
           {/* Right: Hero card mock-up */}
           <div className="relative flex items-center justify-center py-10">
+            {/* Floating AI folder — overlaps the card for depth */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none select-none absolute -bottom-6 -left-8 z-20 hidden md:block animate-float"
+              style={{ filter: 'drop-shadow(6px 6px 0px #2d2d2d)' }}
+            >
+              <Image
+                src="/file1.jpeg"
+                alt="AI-powered folder"
+                width={130}
+                height={130}
+                style={{ transform: 'rotate(-8deg)', mixBlendMode: 'multiply', objectFit: 'contain' }}
+              />
+            </div>
             <div
               className="hidden md:block absolute -top-4 -right-4 w-20 h-20 border-[3px] border-dashed border-muted animate-bounce pointer-events-none"
               style={{ borderRadius: '50% 40% 60% 45% / 50% 55% 45% 50%' }}
@@ -181,7 +194,7 @@ export default function Home() {
           </h2>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
-          {[
+          {([
             {
               icon: <Zap className="w-7 h-7" strokeWidth={2.5} />,
               title: 'Magic Link Portals',
@@ -189,22 +202,22 @@ export default function Home() {
               flavor: 'default' as const, decoration: 'tape' as const, rotate: '-1' as const,
             },
             {
-              icon: <Image src="/meta-llama.png" alt="AI" width={28} height={28} />,
+              illustration: '/file2.jpeg', illustrationTilt: -4,
               title: 'Llama 3.3 AI Audit',
               desc: 'AI reads every uploaded document and flags issues. Expired tax IDs, missing brand colors, wrong formats.',
               flavor: 'postit' as const, decoration: 'tack' as const, rotate: '1' as const,
             },
             {
-              icon: <FileCheck className="w-7 h-7" strokeWidth={2.5} />,
+              illustration: '/paperclip2.png', illustrationTilt: 5,
               title: 'Smart Checklists',
               desc: 'Type your project type, AI generates the exact 10-point asset checklist. No more manual lists.',
               flavor: 'default' as const, decoration: 'tape' as const, rotate: '-0.5' as const,
             },
             {
-              icon: <Upload className="w-7 h-7" strokeWidth={2.5} />,
+              illustration: '/paperclip1.jpeg', illustrationTilt: -3,
               title: 'Drag & Drop Upload',
               desc: 'Clients drop files, FetchAsset auto-validates size, format, and resolution — client side, instant.',
-              flavor: 'muted' as const, decoration: 'none' as const, rotate: '0.5' as const,
+              flavor: 'muted' as const, decoration: 'none' as const, rotate: 'none' as const,
             },
             {
               icon: <Users className="w-7 h-7" strokeWidth={2.5} />,
@@ -218,7 +231,16 @@ export default function Home() {
               desc: 'End-to-end encryption for passwords. Supabase RLS ensures zero data leakage between accounts.',
               flavor: 'postit' as const, decoration: 'tape' as const, rotate: '1' as const,
             },
-          ].map((feature) => (
+          ] as Array<{
+            icon?: React.ReactNode
+            illustration?: string
+            illustrationTilt?: number
+            title: string
+            desc: string
+            flavor: 'default' | 'postit' | 'muted'
+            decoration: 'tape' | 'tack' | 'none'
+            rotate: '-1' | '1' | '-0.5' | '0.5' | 'none'
+          }>).map((feature) => (
             <WobblyCard
               key={feature.title}
               flavor={feature.flavor}
@@ -227,12 +249,28 @@ export default function Home() {
               hoverable
               className="mt-4"
             >
-              <div
-                className="w-12 h-12 bg-ink text-paper flex items-center justify-center mb-4"
-                style={{ borderRadius: '50% 45% 55% 48% / 50% 52% 48% 50%' }}
-              >
-                {feature.icon}
-              </div>
+              {feature.illustration ? (
+                <div className="mb-4 animate-float" style={{ filter: 'drop-shadow(5px 5px 0px #2d2d2d)' }}>
+                  <Image
+                    src={feature.illustration}
+                    alt={feature.title}
+                    width={100}
+                    height={100}
+                    style={{
+                      transform: `rotate(${feature.illustrationTilt ?? 0}deg)`,
+                      mixBlendMode: 'multiply',
+                      objectFit: 'contain',
+                    }}
+                  />
+                </div>
+              ) : (
+                <div
+                  className="w-12 h-12 bg-ink text-paper flex items-center justify-center mb-4"
+                  style={{ borderRadius: '50% 45% 55% 48% / 50% 52% 48% 50%' }}
+                >
+                  {feature.icon}
+                </div>
+              )}
               <h3 className="font-heading text-xl text-ink mb-2">{feature.title}</h3>
               <p className="font-body text-ink/70 text-base">{feature.desc}</p>
             </WobblyCard>
@@ -422,16 +460,45 @@ export default function Home() {
         </div>
       </section>
 
+      {/* FINAL CTA */}
+      <section className="section-container border-t-[3px] border-dashed border-muted py-24 overflow-hidden">
+        <div className="relative max-w-2xl mx-auto text-center">
+          {/* Mascot running toward the CTA */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none select-none absolute -left-4 md:-left-20 bottom-0 hidden md:block animate-float-slow"
+            style={{ filter: 'drop-shadow(4px 4px 0px #2d2d2d)' }}
+          >
+            <Image
+              src="/paperclip1.jpeg"
+              alt="FetchAsset mascot running"
+              width={120}
+              height={120}
+              style={{ transform: 'rotate(-10deg)', mixBlendMode: 'multiply', objectFit: 'contain' }}
+            />
+          </div>
+          <span className="tag-label">Ready?</span>
+          <h2 className="section-title mt-4">
+            Start fetching assets<br />in under 5 minutes
+          </h2>
+          <p className="font-body text-xl text-ink/60 max-w-md mx-auto mb-8">
+            No setup. No credit card. Just click and create your first magic portal.
+          </p>
+          <WobblyButton size="xl" className="gap-3">
+            Get Started Free
+            <ArrowRight strokeWidth={3} className="w-5 h-5" />
+          </WobblyButton>
+          <p className="font-body text-sm text-ink/40 mt-4">
+            Free forever for solo agencies &nbsp;·&nbsp; No credit card needed
+          </p>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer className="border-t-[3px] border-dashed border-muted bg-white/40 py-12">
         <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <div
-              className="w-8 h-8 bg-ink flex items-center justify-center"
-              style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
-            >
-              <Zap className="w-4 h-4 text-paper" strokeWidth={3} />
-            </div>
+            <Image src="/logo.png" alt="FetchAsset" width={32} height={32} />
             <span className="font-heading text-xl text-ink">FetchAsset</span>
           </div>
           <p className="font-body text-sm text-ink/50 text-center">

@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
         contact_method: body.contact_method ?? null,
         contact_value: body.contact_value?.trim() || null,
         contact_visible: true,
-        status: 'draft',
+        status: 'active',
       })
       .select()
       .single()

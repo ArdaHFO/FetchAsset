@@ -72,19 +72,22 @@ export async function assertCanAudit(userId: string): Promise<void> {
   startOfMonth.setDate(1)
   startOfMonth.setHours(0, 0, 0, 0)
 
-  // Count completed AI audits this month across all user's projects
-  const { count } = await (admin as any)
-    .from('submissions')
-    .select('id', { count: 'exact', head: true })
-    .eq('ai_audit_status', 'complete')
-    .gte('updated_at', startOfMonth.toISOString())
-    .in(
-      'project_id',
-      (admin as any)
-        .from('projects')
-        .select('id')
-        .eq('owner_id', userId)
-    )
+  // Fetch user's project IDs first, then count audits
+  const { data: userProjects } = await (admin as any)
+    .from('projects')
+    .select('id')
+    .eq('owner_id', userId)
+
+  const projectIds: string[] = (userProjects ?? []).map((p: { id: string }) => p.id)
+
+  const { count } = projectIds.length === 0
+    ? { count: 0 }
+    : await (admin as any)
+        .from('submissions')
+        .select('id', { count: 'exact', head: true })
+        .eq('ai_audit_status', 'complete')
+        .gte('updated_at', startOfMonth.toISOString())
+        .in('project_id', projectIds)
 
   if ((count ?? 0) >= limit) {
     throw new PlanLimitError(
@@ -111,22 +114,27 @@ export async function getUsageStats(userId: string): Promise<UsageStats> {
   startOfMonth.setDate(1)
   startOfMonth.setHours(0, 0, 0, 0)
 
-  const [{ count: projectCount }, { count: auditCount }] = await Promise.all([
-    (admin as any)
-      .from('projects')
-      .select('id', { count: 'exact', head: true })
-      .eq('owner_id', userId)
-      .in('status', ['draft', 'active']),
-    (admin as any)
-      .from('submissions')
-      .select('id', { count: 'exact', head: true })
-      .eq('ai_audit_status', 'complete')
-      .gte('updated_at', startOfMonth.toISOString())
-      .in(
-        'project_id',
-        (admin as any).from('projects').select('id').eq('owner_id', userId)
-      ),
-  ])
+  // Fetch project IDs first to avoid passing a query builder to .in()
+  const { data: userProjectRows } = await (admin as any)
+    .from('projects')
+    .select('id, status')
+    .eq('owner_id', userId)
+
+  const allUserProjects: Array<{ id: string; status: string }> = userProjectRows ?? []
+  const activeProjectIds = allUserProjects
+    .filter((p) => p.status === 'draft' || p.status === 'active')
+    .map((p) => p.id)
+
+  const projectCount = activeProjectIds.length
+
+  const { count: auditCount } = activeProjectIds.length === 0
+    ? { count: 0 }
+    : await (admin as any)
+        .from('submissions')
+        .select('id', { count: 'exact', head: true })
+        .eq('ai_audit_status', 'complete')
+        .gte('updated_at', startOfMonth.toISOString())
+        .in('project_id', activeProjectIds)
 
   return {
     plan,

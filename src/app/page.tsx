@@ -39,28 +39,61 @@ export default function Home() {
     <main className="min-h-screen bg-paper relative overflow-x-hidden">
 
       {/* ── Background floating deco illustrations ──────────────────────────
-           Low opacity, pointer-events-none, z-0 — they breathe behind content
+           Subtle, pointer-events-none, z-0 — they breathe behind content
       ──────────────────────────────────────────────────────────────────────── */}
       <div aria-hidden="true" className="pointer-events-none select-none">
-        <div className="absolute top-10 right-[5%] opacity-[0.07] animate-float hidden md:block"
+        {/* — Zone 1: Hero — */}
+        <div className="absolute top-16 right-[4%] opacity-[0.13] animate-float hidden md:block"
           style={{ transform: 'rotate(12deg)' }}>
-          <Image src="/file1.png" alt="" width={180} height={180} />
+          <Image src="/file1.png" alt="" width={200} height={200} />
         </div>
-        <div className="absolute top-32 left-[2%] opacity-[0.06] animate-float-slow hidden md:block"
+        <div className="absolute top-40 left-[1%] opacity-[0.11] animate-float-slow hidden md:block"
           style={{ transform: 'rotate(-9deg)' }}>
-          <Image src="/paperclip1.png" alt="" width={140} height={140} />
+          <Image src="/paperclip1.png" alt="" width={160} height={160} />
         </div>
-        <div className="absolute top-[420px] right-[1%] opacity-[0.05] animate-float hidden lg:block"
-          style={{ transform: 'rotate(6deg)' }}>
-          <Image src="/file2.png" alt="" width={120} height={120} />
-        </div>
-        <div className="absolute top-[560px] left-[6%] opacity-[0.06] animate-float-slow hidden lg:block"
-          style={{ transform: 'rotate(-14deg)' }}>
-          <Image src="/file3.png" alt="" width={100} height={100} />
-        </div>
-        <div className="absolute top-[200px] right-[12%] opacity-[0.05] animate-float hidden xl:block"
+        <div className="absolute top-[280px] right-[14%] opacity-[0.09] animate-float hidden lg:block"
           style={{ transform: 'rotate(20deg)' }}>
-          <Image src="/paperclip2.png" alt="" width={110} height={110} />
+          <Image src="/paperclip2.png" alt="" width={130} height={130} />
+        </div>
+
+        {/* — Zone 2: Stats + Features — */}
+        <div className="absolute top-[650px] right-[2%] opacity-[0.11] animate-float hidden lg:block"
+          style={{ transform: 'rotate(6deg)' }}>
+          <Image src="/file2.png" alt="" width={150} height={150} />
+        </div>
+        <div className="absolute top-[820px] left-[3%] opacity-[0.10] animate-float-slow hidden lg:block"
+          style={{ transform: 'rotate(-14deg)' }}>
+          <Image src="/file3.png" alt="" width={130} height={130} />
+        </div>
+        <div className="absolute top-[1050px] right-[8%] opacity-[0.09] animate-float hidden lg:block"
+          style={{ transform: 'rotate(-7deg)' }}>
+          <Image src="/paperclip1.png" alt="" width={120} height={120} />
+        </div>
+        <div className="absolute top-[1280px] left-[5%] opacity-[0.11] animate-float-slow hidden lg:block"
+          style={{ transform: 'rotate(15deg)' }}>
+          <Image src="/file1.png" alt="" width={140} height={140} />
+        </div>
+
+        {/* — Zone 3: Showcase + CTA — */}
+        <div className="absolute top-[1700px] right-[3%] opacity-[0.10] animate-float hidden xl:block"
+          style={{ transform: 'rotate(-11deg)' }}>
+          <Image src="/file2.png" alt="" width={160} height={160} />
+        </div>
+        <div className="absolute top-[2000px] left-[2%] opacity-[0.09] animate-float-slow hidden xl:block"
+          style={{ transform: 'rotate(8deg)' }}>
+          <Image src="/paperclip2.png" alt="" width={135} height={135} />
+        </div>
+        <div className="absolute top-[2400px] right-[6%] opacity-[0.10] animate-float hidden xl:block"
+          style={{ transform: 'rotate(-18deg)' }}>
+          <Image src="/file3.png" alt="" width={120} height={120} />
+        </div>
+        <div className="absolute top-[2700px] left-[4%] opacity-[0.11] animate-float-slow hidden xl:block"
+          style={{ transform: 'rotate(10deg)' }}>
+          <Image src="/paperclip1.png" alt="" width={150} height={150} />
+        </div>
+        <div className="absolute top-[3100px] right-[2%] opacity-[0.09] animate-float hidden xl:block"
+          style={{ transform: 'rotate(-5deg)' }}>
+          <Image src="/file1.png" alt="" width={140} height={140} />
         </div>
       </div>
 

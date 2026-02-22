@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { WobblyButton, WobblyCard, WobblyCardContent } from '@/components/ui'
 import { WobblyFormField } from '@/components/ui'
 
-type AuthMode = 'signin' | 'signup'
+type AuthMode = 'signin' | 'signup' | 'magic'
 
 /* ── Inline Google G logo (lucide has no Google icon) ── */
 function GoogleIcon() {
@@ -46,9 +46,14 @@ export default function LoginPage() {
     setGoogleLoading(true)
     setError(null)
     const supabase = createClient()
+    // Use NEXT_PUBLIC_APP_URL so redirect always hits the canonical domain,
+    // avoiding www vs apex cookie/session mismatch on Vercel.
+    const callbackBase =
+      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ??
+      window.location.origin
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${callbackBase}/auth/callback` },
     })
     if (oauthError) {
       setError(oauthError.message)
@@ -73,6 +78,10 @@ export default function LoginPage() {
     setLoading(true)
     const supabase = createClient()
 
+    const callbackBase =
+      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ??
+      window.location.origin
+
     if (mode === 'signin') {
       const { error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
@@ -82,7 +91,7 @@ export default function LoginPage() {
       if (authError) {
         const msg = authError.message.toLowerCase()
         if (msg.includes('invalid') || msg.includes('credentials') || msg.includes('not found')) {
-          setError('Wrong email or password. No account? Switch to "Create Account".')
+          setError('Wrong email or password. No account? Switch to "Create Account" or use a magic link.')
         } else {
           setError(authError.message)
         }
@@ -96,12 +105,37 @@ export default function LoginPage() {
       const { error: authError } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { emailRedirectTo: `${callbackBase}/auth/callback` },
       })
       setLoading(false)
       if (authError) { setError(authError.message); return }
       setSuccess('Account created! Check your email for a confirmation link, then sign in.')
     }
+  }
+
+  /* ── Magic link ── */
+  async function handleMagicLink(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setSuccess(null)
+
+    if (!email.trim()) { setError('Please enter your email address.'); return }
+
+    setLoading(true)
+    const supabase = createClient()
+    const callbackBase =
+      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ??
+      window.location.origin
+    const { error: authError } = await supabase.auth.signInWithOtp({
+      email: email.trim().toLowerCase(),
+      options: {
+        emailRedirectTo: `${callbackBase}/auth/callback`,
+        shouldCreateUser: true,
+      },
+    })
+    setLoading(false)
+    if (authError) { setError(authError.message); return }
+    router.push(`/verify?email=${encodeURIComponent(email.trim().toLowerCase())}`)
   }
 
   /* ── Shared email input ── */
@@ -216,6 +250,14 @@ export default function LoginPage() {
             >
               Create Account
             </button>
+            <button
+              type="button"
+              className={tabClass('magic')}
+              style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+              onClick={() => switchMode('magic')}
+            >
+              Magic Link
+            </button>
           </div>
 
           {/* ── Error / Success banners ── */}
@@ -302,6 +344,30 @@ export default function LoginPage() {
                   </button>
                 </p>
               )}
+            </form>
+          )}
+
+          {/* ── Magic link form ── */}
+          {mode === 'magic' && (
+            <form onSubmit={handleMagicLink} className="flex flex-col gap-4">
+              {emailField}
+              <p className="font-body text-xs text-ink/50 -mt-2">
+                We&apos;ll email you a one-click sign-in link. No password needed. New accounts are created automatically.
+              </p>
+              <WobblyButton
+                type="submit"
+                variant="primary"
+                size="lg"
+                loading={loading}
+                className="w-full"
+              >
+                {!loading && (
+                  <>
+                    Send Magic Link
+                    <ArrowRight size={16} className="ml-2" />
+                  </>
+                )}
+              </WobblyButton>
             </form>
           )}
 

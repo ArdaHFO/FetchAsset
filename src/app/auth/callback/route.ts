@@ -8,9 +8,18 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/dashboard'
 
+  // On Vercel, x-forwarded-host is the actual public hostname (e.g. www.fetchasset.com)
+  // Use it instead of `origin` to avoid internal/wrong-domain redirects
+  const forwardedHost = request.headers.get('x-forwarded-host')
+  const isLocal = process.env.NODE_ENV === 'development'
+  const baseUrl = isLocal
+    ? origin
+    : forwardedHost
+      ? `https://${forwardedHost}`
+      : origin
+
   if (!code) {
-    // No code — likely direct visit or expired link
-    return NextResponse.redirect(`${origin}/login?error=missing_code`)
+    return NextResponse.redirect(`${baseUrl}/login?error=missing_code`)
   }
 
   const cookieStore = await cookies()
@@ -36,12 +45,10 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error('[auth/callback] exchangeCodeForSession error:', error.message)
-    const redirectUrl = new URL('/login', origin)
-    redirectUrl.searchParams.set('error', 'auth_failed')
-    return NextResponse.redirect(redirectUrl.toString())
+    return NextResponse.redirect(`${baseUrl}/login?error=auth_failed`)
   }
 
-  // Successful auth — redirect to intended destination (default: /dashboard)
-  const redirectTo = next.startsWith('/') ? `${origin}${next}` : `${origin}/dashboard`
+  // Redirect to intended destination (default: /dashboard)
+  const redirectTo = next.startsWith('/') ? `${baseUrl}${next}` : `${baseUrl}/dashboard`
   return NextResponse.redirect(redirectTo)
 }

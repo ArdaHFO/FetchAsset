@@ -47,8 +47,11 @@ export async function POST(req: NextRequest) {
 
     const body = (await req.json()) as CreateProjectBody
 
-    if (!body.title?.trim() || !body.client_name?.trim()) {
-      return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
+    if (!body.title?.trim()) {
+      return NextResponse.json({ error: 'Project name is required.' }, { status: 400 })
+    }
+    if (!body.client_name?.trim()) {
+      return NextResponse.json({ error: 'Client name is required.' }, { status: 400 })
     }
 
     // Enforce requests-per-project limit

@@ -398,7 +398,7 @@ export default function Home() {
                   className="w-10 h-10 bg-ink flex items-center justify-center flex-shrink-0"
                   style={{ borderRadius: '50% 45% 55% 48% / 50% 52% 48% 50%' }}
                 >
-                  <Image src="/meta-llama.png" alt="AI" width={20} height={20} />
+                  <Image src="/meta-llama.png" alt="AI" width={20} height={20} className="invert" />
                 </div>
                 <WobblyCardTitle>Llama 3.3 Smart Audit</WobblyCardTitle>
               </div>

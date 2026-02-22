@@ -82,7 +82,7 @@ export default function CookiePolicy() {
         <p>You can control and manage cookies in several ways:</p>
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>Browser settings:</strong> Most browsers allow you to refuse or delete cookies. See your browser&apos;s help documentation for instructions.</li>
-          <li><strong>Opt-out tools:</strong> For PostHog analytics, you can opt out by contacting us at <a href="mailto:privacy@fetchasset.app" className="underline">privacy@fetchasset.app</a>.</li>
+          <li><strong>Opt-out tools:</strong> For PostHog analytics, you can opt out by contacting us at <a href="mailto:privacy@fetchasset.com" className="underline">privacy@fetchasset.com</a>.</li>
           <li><strong>Local storage:</strong> You can clear local storage data via your browser&apos;s developer tools or settings.</li>
         </ul>
         <p>Note: Disabling essential cookies will prevent core platform features from working correctly.</p>
@@ -105,7 +105,7 @@ export default function CookiePolicy() {
         <p>
           Questions about our cookie use?<br />
           <strong>FetchAsset, Inc.</strong><br />
-          Email: <a href="mailto:privacy@fetchasset.app" className="underline">privacy@fetchasset.app</a>
+          Email: <a href="mailto:privacy@fetchasset.com" className="underline">privacy@fetchasset.com</a>
         </p>
       </LegalSection>
     </LegalPageWrapper>

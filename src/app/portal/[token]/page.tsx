@@ -268,7 +268,7 @@ export default async function PortalPage({ params }: PageProps) {
         {!isPaidPlan ? (
           <p className="text-xs text-ink/30" style={{ fontFamily: fontBody }}>
             Powered by{' '}
-            <a href="https://fetchasset.app" target="_blank" rel="noreferrer" className="hover:text-ink/60 transition-colors">
+            <a href="https://fetchasset.com" target="_blank" rel="noreferrer" className="hover:text-ink/60 transition-colors">
               FetchAsset
             </a>
             {' '}· Your files are encrypted in transit and at rest.

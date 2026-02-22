@@ -108,7 +108,7 @@ export default function TermsOfService() {
         <p>
           Questions about these Terms?<br />
           <strong>FetchAsset, Inc.</strong><br />
-          Email: <a href="mailto:legal@fetchasset.app" className="underline">legal@fetchasset.app</a>
+          Email: <a href="mailto:legal@fetchasset.com" className="underline">legal@fetchasset.com</a>
         </p>
       </LegalSection>
     </LegalPageWrapper>

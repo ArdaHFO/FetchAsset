@@ -17,7 +17,7 @@ export default function PrivacyPolicy() {
     >
       <LegalSection title="1. Introduction">
         <p>
-          Welcome to <strong>FetchAsset, Inc.</strong> (&quot;FetchAsset&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website at <strong>fetchasset.app</strong> and use our SaaS platform.
+          Welcome to <strong>FetchAsset, Inc.</strong> (&quot;FetchAsset&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website at <strong>fetchasset.com</strong> and use our SaaS platform.
         </p>
         <p>Please read this policy carefully. If you disagree with its terms, please discontinue use of our services.</p>
       </LegalSection>
@@ -77,7 +77,7 @@ export default function PrivacyPolicy() {
           <li><strong>Portability</strong> — receive your data in a portable format</li>
           <li><strong>Objection</strong> — object to certain processing activities</li>
         </ul>
-        <p>To exercise any right, contact us at <strong>privacy@fetchasset.app</strong>.</p>
+        <p>To exercise any right, contact us at <strong>privacy@fetchasset.com</strong>.</p>
       </LegalSection>
 
       <LegalSection title="8. Security">
@@ -96,7 +96,7 @@ export default function PrivacyPolicy() {
         <p>
           For privacy-related questions, contact us at:<br />
           <strong>FetchAsset, Inc.</strong><br />
-          Email: <a href="mailto:privacy@fetchasset.app" className="underline">privacy@fetchasset.app</a>
+          Email: <a href="mailto:privacy@fetchasset.com" className="underline">privacy@fetchasset.com</a>
         </p>
       </LegalSection>
     </LegalPageWrapper>

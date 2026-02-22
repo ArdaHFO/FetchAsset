@@ -21,7 +21,7 @@ const patrickHand = Patrick_Hand({
 })
 
 // ── Site-wide constants ───────────────────────────────────────────────
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fetchasset.app'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fetchasset.com'
 const SITE_NAME = 'FetchAsset'
 const TITLE_TEMPLATE = '%s — FetchAsset'
 const DEFAULT_TITLE = 'FetchAsset | Stop Chasing Files, Start Your Projects'

@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { WobblyButton, WobblyCard, WobblyCardContent } from '@/components/ui'
 import { WobblyFormField } from '@/components/ui'
 
-type AuthMode = 'signin' | 'signup' | 'magic'
+type AuthMode = 'signin' | 'signup'
 
 /* ── Inline Google G logo (lucide has no Google icon) ── */
 function GoogleIcon() {
@@ -82,7 +82,7 @@ export default function LoginPage() {
       if (authError) {
         const msg = authError.message.toLowerCase()
         if (msg.includes('invalid') || msg.includes('credentials') || msg.includes('not found')) {
-          setError('Wrong email or password. No account? Switch to "Create Account" or use a magic link.')
+          setError('Wrong email or password. No account? Switch to "Create Account".')
         } else {
           setError(authError.message)
         }
@@ -102,28 +102,6 @@ export default function LoginPage() {
       if (authError) { setError(authError.message); return }
       setSuccess('Account created! Check your email for a confirmation link, then sign in.')
     }
-  }
-
-  /* ── Magic link ── */
-  async function handleMagicLink(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setSuccess(null)
-
-    if (!email.trim()) { setError('Please enter your email address.'); return }
-
-    setLoading(true)
-    const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithOtp({
-      email: email.trim().toLowerCase(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-        shouldCreateUser: true,
-      },
-    })
-    setLoading(false)
-    if (authError) { setError(authError.message); return }
-    router.push(`/verify?email=${encodeURIComponent(email.trim().toLowerCase())}`)
   }
 
   /* ── Shared email input ── */
@@ -238,14 +216,6 @@ export default function LoginPage() {
             >
               Create Account
             </button>
-            <button
-              type="button"
-              className={tabClass('magic')}
-              style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
-              onClick={() => switchMode('magic')}
-            >
-              Magic Link
-            </button>
           </div>
 
           {/* ── Error / Success banners ── */}
@@ -332,30 +302,6 @@ export default function LoginPage() {
                   </button>
                 </p>
               )}
-            </form>
-          )}
-
-          {/* ── Magic link form ── */}
-          {mode === 'magic' && (
-            <form onSubmit={handleMagicLink} className="flex flex-col gap-4">
-              {emailField}
-              <p className="font-body text-xs text-ink/50 -mt-2">
-                We&apos;ll email you a one-click sign-in link. No password needed. New accounts are created automatically.
-              </p>
-              <WobblyButton
-                type="submit"
-                variant="primary"
-                size="lg"
-                loading={loading}
-                className="w-full"
-              >
-                {!loading && (
-                  <>
-                    Send Magic Link
-                    <ArrowRight size={16} className="ml-2" />
-                  </>
-                )}
-              </WobblyButton>
             </form>
           )}
 

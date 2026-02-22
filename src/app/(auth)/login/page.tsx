@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { Mail, ArrowRight, Lock, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { WobblyButton, WobblyCard, WobblyCardContent } from '@/components/ui'
@@ -194,7 +193,6 @@ export default function LoginPage() {
           {/* Header */}
           <div className="mb-6 text-center">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <Image src="/meta-llama.png" alt="AI" width={20} height={20} />
               <h1 className="font-heading text-2xl text-ink">Welcome to FetchAsset</h1>
             </div>
             <p className="font-body text-sm text-ink/60">

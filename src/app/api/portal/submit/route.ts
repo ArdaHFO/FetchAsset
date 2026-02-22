@@ -207,6 +207,7 @@ export async function POST(request: NextRequest) {
                 projectTitle: proj.title,
                 requestTitle: req.title,
                 portalUrl,
+                agencyEmail: agencyEmail ?? undefined,
               })
             : Promise.resolve(),
         ])

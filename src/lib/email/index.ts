@@ -116,6 +116,8 @@ interface SendOptions {
   toName?: string
   subject: string
   html: string
+  replyTo?: string
+  replyToName?: string
 }
 
 async function send(opts: SendOptions): Promise<void> {
@@ -123,11 +125,15 @@ async function send(opts: SendOptions): Promise<void> {
   const from       = new Sender(SENDER_EMAIL, SENDER_NAME)
   const recipients = [new Recipient(opts.to, opts.toName ?? opts.to)]
 
-  const params = new EmailParams()
+  let params = new EmailParams()
     .setFrom(from)
     .setTo(recipients)
     .setSubject(opts.subject)
     .setHtml(opts.html)
+
+  if (opts.replyTo) {
+    params = params.setReplyTo(new Recipient(opts.replyTo, opts.replyToName ?? opts.replyTo))
+  }
 
   try {
     await client.email.send(params)
@@ -179,6 +185,8 @@ interface SubmissionConfirmEmailOpts {
   projectTitle: string
   requestTitle: string
   portalUrl: string
+  agencyEmail?: string
+  agencyName?: string
 }
 
 export async function sendSubmissionConfirmToClient(opts: SubmissionConfirmEmailOpts): Promise<void> {
@@ -201,6 +209,8 @@ export async function sendSubmissionConfirmToClient(opts: SubmissionConfirmEmail
     toName: opts.clientName,
     subject: `Received: "${opts.requestTitle}" for ${opts.projectTitle}`,
     html,
+    replyTo: opts.agencyEmail,
+    replyToName: opts.agencyName,
   })
 }
 
@@ -212,6 +222,8 @@ interface ApprovalEmailOpts {
   projectTitle: string
   requestTitle: string
   portalUrl: string
+  agencyEmail?: string
+  agencyName?: string
 }
 
 export async function sendApprovalToClient(opts: ApprovalEmailOpts): Promise<void> {
@@ -231,6 +243,8 @@ export async function sendApprovalToClient(opts: ApprovalEmailOpts): Promise<voi
     toName: opts.clientName,
     subject: `✅ Approved: "${opts.requestTitle}" — ${opts.projectTitle}`,
     html,
+    replyTo: opts.agencyEmail,
+    replyToName: opts.agencyName,
   })
 }
 
@@ -244,6 +258,8 @@ interface NudgeEmailOpts {
   missingItems: string[]        // List of missing asset titles
   portalUrl: string
   hoursUntilDeadline: number    // 24 or 48
+  agencyEmail?: string
+  agencyName?: string
 }
 
 export async function sendNudgeToClient(opts: NudgeEmailOpts): Promise<void> {
@@ -274,6 +290,8 @@ export async function sendNudgeToClient(opts: NudgeEmailOpts): Promise<void> {
     toName: opts.clientName,
     subject: `${urgency}: Files needed for "${opts.projectTitle}" — deadline in ${timeLeft}`,
     html,
+    replyTo: opts.agencyEmail,
+    replyToName: opts.agencyName,
   })
 }
 
@@ -286,6 +304,8 @@ interface RejectionEmailOpts {
   requestTitle: string
   rejectionReason?: string | null
   portalUrl: string
+  agencyEmail?: string
+  agencyName?: string
 }
 
 export async function sendRejectionToClient(opts: RejectionEmailOpts): Promise<void> {
@@ -308,5 +328,7 @@ export async function sendRejectionToClient(opts: RejectionEmailOpts): Promise<v
     toName: opts.clientName,
     subject: `Update needed: "${opts.requestTitle}" — ${opts.projectTitle}`,
     html,
+    replyTo: opts.agencyEmail,
+    replyToName: opts.agencyName,
   })
 }

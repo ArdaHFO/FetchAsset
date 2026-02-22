@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
               projectTitle: project.title,
               requestTitle,
               portalUrl,
+              agencyEmail: user.email ?? undefined,
             })
           } else {
             await sendRejectionToClient({
@@ -90,6 +91,7 @@ export async function POST(request: NextRequest) {
               requestTitle,
               rejectionReason: rejectionReason ?? null,
               portalUrl,
+              agencyEmail: user.email ?? undefined,
             })
           }
         } catch (err) {

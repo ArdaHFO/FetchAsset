@@ -101,6 +101,7 @@ export async function POST(req: NextRequest) {
         missingItems,
         portalUrl,
         hoursUntilDeadline: nudgeWindow,
+        agencyEmail: user.email ?? undefined,
       }).catch((err) => console.error('[api/nudge] Email send error:', err))
 
       sentCount++

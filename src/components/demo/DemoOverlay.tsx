@@ -61,6 +61,7 @@ export interface DemoState {
   formats: string[]
   customFormat: string
   instructions: string
+  assetQty: number
 }
 
 export const DEFAULT_DEMO_STATE: DemoState = {
@@ -69,6 +70,7 @@ export const DEFAULT_DEMO_STATE: DemoState = {
   formats: [],
   customFormat: '',
   instructions: '',
+  assetQty: 1,
 }
 
 const NICHES = [
@@ -606,6 +608,31 @@ function Step2AiSpec({
               />
             </div>
 
+            {/* Quantity stepper */}
+            <div className="flex items-center gap-3">
+              <p className="font-body text-xs text-ink/45 uppercase tracking-wider flex-1">Quantity</p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDemoState({ ...demoState, assetQty: Math.max(1, demoState.assetQty - 1) })}
+                  disabled={demoState.assetQty <= 1}
+                  className="w-7 h-7 flex items-center justify-center border-2 border-ink/40 font-body text-sm text-ink hover:border-ink disabled:opacity-30 transition-all"
+                  style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+                >−</button>
+                <span className="font-heading text-lg text-ink w-6 text-center">{demoState.assetQty}</span>
+                <button
+                  type="button"
+                  onClick={() => setDemoState({ ...demoState, assetQty: Math.min(10, demoState.assetQty + 1) })}
+                  disabled={demoState.assetQty >= 10}
+                  className="w-7 h-7 flex items-center justify-center border-2 border-ink/40 font-body text-sm text-ink hover:border-ink disabled:opacity-30 transition-all"
+                  style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+                >+</button>
+              </div>
+              {demoState.assetQty > 1 && (
+                <span className="font-body text-xs text-blue-600">{demoState.assetQty} upload slots</span>
+              )}
+            </div>
+
             {/* Format chips */}
             <div>
               <p className="font-body text-xs text-ink/45 uppercase tracking-wider mb-2">Accepted formats</p>
@@ -753,25 +780,17 @@ function Step2AiSpec({
 function Step3MagicLink({
   onNext,
   demoState,
-  onOpenPortal,
 }: {
   onNext: () => void
   demoState: DemoState
-  onOpenPortal: () => void
 }) {
   const [emailVisible, setEmailVisible] = useState(false)
-  const [copied, setCopied] = useState(false)
   const MAGIC_URL = 'fetchasset.com/demo/preview-portal'
 
   useEffect(() => {
     const t = setTimeout(() => setEmailVisible(true), 1200)
     return () => clearTimeout(t)
   }, [])
-
-  function handleCopy() {
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1800)
-  }
 
   return (
     <motion.div variants={stepVariants} initial="initial" animate="animate" exit="exit" className="w-full max-w-xl">
@@ -799,24 +818,24 @@ function Step3MagicLink({
               transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
             >
               <WobblyTooltip delay={0.6} side="top">
-                👆 Click this link to preview the client portal!
+                👆 Click to open the real demo client portal!
               </WobblyTooltip>
-              <button
-                onClick={onOpenPortal}
+              <Link
+                href="/demo/preview-portal"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="mt-2 w-full flex items-center gap-2 p-3 bg-paper border-[3px] border-ink hover:bg-[#fffde7] transition-colors group"
                 style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '4px 4px 0 0 #2d2d2d' }}
               >
                 <Link2 size={14} className="text-ink/40 flex-shrink-0" />
                 <span className="font-body text-sm text-ink flex-1 truncate text-left group-hover:underline">{MAGIC_URL}</span>
-                <motion.span
-                  animate={copied ? { backgroundColor: '#22c55e', color: '#fff' } : { backgroundColor: '#2d2d2d', color: '#FAFAF7' }}
-                  onClick={(e) => { e.stopPropagation(); handleCopy() }}
-                  className="font-body text-xs px-2 py-0.5 flex-shrink-0 cursor-pointer"
+                <span
+                  className="font-body text-xs px-2 py-0.5 flex-shrink-0 bg-ink text-paper"
                   style={{ borderRadius: '20px' }}
                 >
-                  {copied ? '✓ Copied' : 'Copy'}
-                </motion.span>
-              </button>
+                  Open ↗
+                </span>
+              </Link>
             </motion.div>
 
             {/* No-password badge */}
@@ -867,17 +886,15 @@ function Step3MagicLink({
                       {' '}Deadline: <em>Wednesday, 25 February</em>.
                     </p>
                     {/* Big CTA button mockup */}
-                    <motion.button
-                      onClick={onOpenPortal}
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
-                      whileHover={{ scale: 1.02 }}
-                      className="mt-1 px-6 py-3 bg-ink text-paper font-body text-sm font-bold text-center w-full cursor-pointer hover:opacity-90 transition-opacity"
+                    <Link
+                      href="/demo/preview-portal"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 px-6 py-3 bg-ink text-paper font-body text-sm font-bold text-center w-full flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
                       style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '3px 3px 0 0 #e63946' }}
                     >
                       🔗 Open My Portal &mdash; No Password Needed
-                    </motion.button>
+                    </Link>
                   </div>
                 </motion.div>
               )}
@@ -1641,7 +1658,7 @@ export default function DemoOverlay() {
             <Step2AiSpec key="s2" onNext={next} demoState={demoState} setDemoState={setDemoState} />
           )}
           {started && step === 3 && (
-            <Step3MagicLink key="s3" onNext={next} demoState={demoState} onOpenPortal={() => setPortalOpen(true)} />
+            <Step3MagicLink key="s3" onNext={next} demoState={demoState} />
           )}
           {started && step === 4 && <Step4ClientView key="s4" onNext={next} demoState={demoState} />}
           {started && step === 5 && <Step5AiAudit    key="s5" onNext={next} demoState={demoState} />}

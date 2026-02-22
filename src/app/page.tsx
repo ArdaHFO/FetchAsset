@@ -90,7 +90,7 @@ export default function Home() {
               style={{ filter: 'drop-shadow(6px 6px 0px #2d2d2d)' }}
             >
               <Image
-                src="/file1.jpeg"
+                src="/file1.png"
                 alt="AI-powered folder"
                 width={130}
                 height={130}
@@ -202,7 +202,7 @@ export default function Home() {
               flavor: 'default' as const, decoration: 'tape' as const, rotate: '-1' as const,
             },
             {
-              illustration: '/file2.jpeg', illustrationTilt: -4,
+              illustration: '/file2.png', illustrationTilt: -4,
               title: 'Llama 3.3 AI Audit',
               desc: 'AI reads every uploaded document and flags issues. Expired tax IDs, missing brand colors, wrong formats.',
               flavor: 'postit' as const, decoration: 'tack' as const, rotate: '1' as const,
@@ -214,7 +214,7 @@ export default function Home() {
               flavor: 'default' as const, decoration: 'tape' as const, rotate: '-0.5' as const,
             },
             {
-              illustration: '/paperclip1.jpeg', illustrationTilt: -3,
+              illustration: '/paperclip1.png', illustrationTilt: -3,
               title: 'Drag & Drop Upload',
               desc: 'Clients drop files, FetchAsset auto-validates size, format, and resolution — client side, instant.',
               flavor: 'muted' as const, decoration: 'none' as const, rotate: 'none' as const,
@@ -470,7 +470,7 @@ export default function Home() {
             style={{ filter: 'drop-shadow(4px 4px 0px #2d2d2d)' }}
           >
             <Image
-              src="/paperclip1.jpeg"
+              src="/paperclip1.png"
               alt="FetchAsset mascot running"
               width={120}
               height={120}

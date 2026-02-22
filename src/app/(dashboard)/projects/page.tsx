@@ -83,7 +83,7 @@ export default async function ProjectsPage({ searchParams }: PageProps) {
         >
           <div style={{ filter: 'drop-shadow(4px 4px 0px #2d2d2d)' }} className="mb-4">
             <Image
-              src="/paperclip1.jpeg"
+              src="/paperclip1.png"
               alt="Mascot"
               width={90}
               height={90}

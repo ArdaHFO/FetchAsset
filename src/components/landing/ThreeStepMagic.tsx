@@ -71,6 +71,24 @@ function IconAudit() {
   )
 }
 
+function IconLock() {
+  return (
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      {/* Shackle */}
+      <path d="M15 22 V16 C15 9 33 9 33 16 V22" stroke="#2d2d2d" strokeWidth="2.8" strokeLinecap="round" fill="none" />
+      {/* Body */}
+      <rect x="9" y="21" width="30" height="22" rx="4" ry="5"
+        stroke="#2d2d2d" strokeWidth="2.8" fill="#fffde7" strokeLinejoin="round" />
+      {/* Keyhole */}
+      <circle cx="24" cy="30" r="3.8" fill="#2d2d2d" />
+      <rect x="22.2" y="30" width="3.6" height="5.5" rx="1" fill="#2d2d2d" />
+      {/* Shield sparkle */}
+      <path d="M39 10 L40 8 L41 10 L40 11Z" fill="#2d2d2d" opacity="0.45" />
+      <path d="M7 15 L8 13 L9 15 L8 16Z" fill="#2d2d2d" opacity="0.35" />
+    </svg>
+  )
+}
+
 // ── Steps data ───────────────────────────────────────────────────────────────
 
 const STEPS = [
@@ -111,7 +129,7 @@ const STEPS = [
 
 export default function ThreeStepMagic() {
   return (
-    <section id="how" className="max-w-5xl mx-auto px-6 py-28">
+    <section id="how" className="max-w-5xl mx-auto px-4 sm:px-6 py-16 md:py-28">
 
       {/* Heading */}
       <motion.div
@@ -119,10 +137,10 @@ export default function ThreeStepMagic() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-80px' }}
         transition={{ duration: 0.5, ease: 'easeOut' as const }}
-        className="text-center mb-16"
+        className="text-center mb-10 md:mb-16"
       >
         <span className="tag-label">Dead simple</span>
-        <h2 className="font-heading text-5xl md:text-6xl text-ink mt-4 leading-tight">
+        <h2 className="font-heading text-3xl sm:text-5xl md:text-6xl text-ink mt-4 leading-tight">
           The 3-Step Magic
         </h2>
         <p className="font-body text-lg text-ink/55 mt-4 max-w-lg mx-auto">
@@ -200,6 +218,36 @@ export default function ThreeStepMagic() {
           </motion.div>
         ))}
       </div>
+
+      {/* Security callout — unique feature not covered in the 3 steps above */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-60px' }}
+        transition={{ delay: 0.25, duration: 0.5, ease: 'easeOut' as const }}
+        className="mt-6"
+      >
+        <WobblyCard flavor="default" decoration="tape" rotate="0.5" className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div
+            className="w-14 h-14 shrink-0 bg-paper border-[3px] border-ink flex items-center justify-center"
+            style={{ borderRadius: '50% 45% 55% 48% / 50% 52% 48% 50%', boxShadow: '3px 3px 0 0 #2d2d2d' }}
+          >
+            <IconLock />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-heading text-2xl text-ink mb-1">Secure by Default</h3>
+            <p className="font-body text-ink/65 text-base leading-relaxed">
+              End-to-end encrypted. Passwords never stored in plain text. Row-level security ensures zero data leakage between your clients.
+            </p>
+          </div>
+          <span
+            className="font-body text-xs bg-ink text-paper px-3 py-1 inline-block shrink-0"
+            style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+          >
+            Enterprise-ready
+          </span>
+        </WobblyCard>
+      </motion.div>
 
       {/* Connecting arrow doodles (desktop) */}
       <div className="hidden md:flex justify-between px-[calc(33.33%-20px)] mt-4 pointer-events-none" aria-hidden="true">

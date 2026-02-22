@@ -37,6 +37,8 @@ interface ProjectForm {
   buffer_days: number
   auto_reminder: boolean
   global_naming_rule: boolean
+  contact_method: 'email' | 'whatsapp' | ''
+  contact_value: string
 }
 
 // Helper: subtract buffer from ISO date → locale string
@@ -257,6 +259,62 @@ function StepBasics({
           className="w-full px-4 py-2.5 font-body text-sm text-ink bg-paper border-2 border-ink/60 outline-none focus:border-ink transition-all resize-none"
           style={{ borderRadius: '20px 5px 20px 5px / 5px 20px 5px 20px' }}
         />
+      </div>
+
+      {/* Client Support */}
+      <div
+        className="flex flex-col gap-3 p-4 bg-[#f0fbff] border-2 border-ink/10"
+        style={{ borderRadius: '20px 5px 20px 5px / 5px 20px 5px 20px' }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-base">💬</span>
+          <p className="font-body text-sm text-ink font-semibold">Client Support <span className="font-normal text-ink/45">(optional)</span></p>
+        </div>
+        <p className="font-body text-xs text-ink/50 -mt-1">
+          Give your client a way to reach you directly from the portal. A &ldquo;Got a question?&rdquo; card will appear after 5 seconds.
+        </p>
+        <div className="flex flex-col gap-1">
+          <label className="font-body text-xs text-ink/50 uppercase tracking-wider">Contact Method</label>
+          <div className="flex gap-2">
+            {([['', 'None'], ['email', '✉️ Email'], ['whatsapp', '📱 WhatsApp']] as const).map(([val, label]) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => set('contact_method', val)}
+                className={cn(
+                  'font-body text-xs px-3 py-1.5 border-2 transition-all',
+                  form.contact_method === val
+                    ? 'bg-ink text-paper border-ink'
+                    : 'bg-paper text-ink border-ink/25 hover:border-ink'
+                )}
+                style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px', boxShadow: '2px 2px 0 0 #2d2d2d' }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {form.contact_method !== '' && (
+          <div className="flex flex-col gap-1">
+            <label className="font-body text-xs text-ink/50 uppercase tracking-wider" htmlFor="contact_value">
+              {form.contact_method === 'whatsapp' ? 'WhatsApp number (with country code)' : 'Your email address'}
+            </label>
+            <input
+              id="contact_value"
+              type={form.contact_method === 'email' ? 'email' : 'tel'}
+              value={form.contact_value}
+              onChange={(e) => set('contact_value', e.target.value)}
+              placeholder={form.contact_method === 'whatsapp' ? '+44 7700 900123' : 'you@studio.com'}
+              className="w-full px-4 py-2.5 font-body text-sm text-ink bg-paper border-2 border-ink/60 outline-none focus:border-ink transition-all"
+              style={{ borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px' }}
+            />
+            <p className="font-body text-xs text-ink/40">
+              {form.contact_method === 'whatsapp'
+                ? 'Client taps a button → opens WhatsApp chat with you pre-filled.'
+                : 'Client taps a button → opens their mail app with subject pre-filled.'}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Advanced settings toggle */}
@@ -662,6 +720,15 @@ function StepReview({ form, items }: { form: ProjectForm; items: AssetItem[] }) 
           </div>
         )}
 
+        {form.contact_method && form.contact_value && (
+          <div>
+            <p className="font-body text-xs text-ink/40 uppercase tracking-wider mb-0.5">Client Support</p>
+            <p className="font-body text-sm text-ink">
+              {form.contact_method === 'whatsapp' ? '📱 WhatsApp' : '✉️ Email'}: {form.contact_value}
+            </p>
+          </div>
+        )}
+
         {form.due_date && (
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
@@ -730,6 +797,7 @@ export default function NewProjectPage() {
   const [form, setForm] = useState<ProjectForm>({
     title: '', client_name: '', client_email: '', notes: '',
     due_date: '', buffer_days: 0, auto_reminder: false, global_naming_rule: false,
+    contact_method: '', contact_value: '',
   })
   const [assets, setAssets] = useState<AssetItem[]>([])
 
@@ -758,6 +826,8 @@ export default function NewProjectPage() {
           due_date: form.due_date || null,
           buffer_days: form.buffer_days,
           auto_reminder: form.auto_reminder,
+          contact_method: form.contact_method || null,
+          contact_value: form.contact_value.trim() || null,
           assets: assets.filter((a) => a.title.trim()).map((a, i) => ({
             title: a.title.trim(),
             description: a.description.trim() || null,

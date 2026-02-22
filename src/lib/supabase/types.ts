@@ -86,6 +86,9 @@ export interface Project {
   auto_reminder: boolean            // enable The Nudger™ email reminders
   notes: string | null              // internal agency notes
   custom_message: string | null     // shown to client on portal open
+  contact_method: 'email' | 'whatsapp' | null  // how the client should reach the agency
+  contact_value: string | null                  // email address or WhatsApp number
+  contact_visible: boolean                      // freelancer toggle — shows/hides card in portal
   // Computed / join fields (not in DB, added by queries)
   asset_requests?: AssetRequest[]
   submissions_count?: number

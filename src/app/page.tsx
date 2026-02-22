@@ -1,4 +1,4 @@
-﻿/**
+/**
  * FetchAsset  Landing Page
  * World-class B2B SaaS landing with graph-paper texture, Framer Motion,
  * HeroSection + 3-Step Magic + Client Portal Preview.
@@ -8,9 +8,7 @@ import React from 'react'
 import type { Metadata } from 'next'
 import {
   ArrowRight,
-  Zap,
   Check,
-  Lock,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -29,6 +27,7 @@ import HeroSection from '@/components/landing/HeroSection'
 import ThreeStepMagic from '@/components/landing/ThreeStepMagic'
 import ClientPortalPreview from '@/components/landing/ClientPortalPreview'
 import CheckoutButton from '@/components/CheckoutButton'
+import LandingNav from '@/components/landing/LandingNav'
 
 export const metadata: Metadata = {
   alternates: { canonical: '/' },
@@ -75,22 +74,7 @@ export default function Home() {
       </div>
 
       {/* NAVBAR */}
-      <nav className="sticky top-0 z-50 bg-paper/90 backdrop-blur-sm border-b-[3px] border-dashed border-muted">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-heading text-2xl text-ink">FetchAsset</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8 font-body text-ink/70">
-            <a href="#features" className="hover:text-ink transition-colors">Features</a>
-            <a href="#how" className="hover:text-ink transition-colors">How it works</a>
-            <a href="#pricing" className="hover:text-ink transition-colors">Pricing</a>
-            <a href="#faq" className="hover:text-ink transition-colors">FAQ</a>
-          </div>
-          <Link href="/login">
-            <WobblyButton size="sm">Start Free</WobblyButton>
-          </Link>
-        </div>
-      </nav>
+      <LandingNav />
 
       {/* â”€â”€ HERO + STATS (client component â€” handles Demo overlay) â”€â”€ */}
       <HeroSection />
@@ -100,46 +84,6 @@ export default function Home() {
 
       {/* â”€â”€ 3-STEP MAGIC (framer motion scroll, mascot peek) â”€â”€ */}
       <ThreeStepMagic />
-
-      {/* â”€â”€ FEATURES â”€â”€ */}
-      <section id="features" className="max-w-5xl mx-auto px-6 py-28 border-t-[3px] border-dashed border-muted">
-        <div className="text-center mb-16">
-          <span className="tag-label">Why agencies switch</span>
-          <h2 className="font-heading text-5xl md:text-6xl text-ink mt-4 leading-tight">
-            Everything you need,<br />nothing you don&apos;t
-          </h2>
-        </div>
-        <div className="grid md:grid-cols-3 gap-8">
-          {([
-            {
-              icon: <Zap className="w-7 h-7" strokeWidth={2.5} />,
-              title: 'Magic Link Portals',
-              desc: "Clients click one link. No sign-up, no password reset emails. Uploading in under 30 seconds.",
-              flavor: 'default' as const, decoration: 'tape' as const, rotate: '-1' as const,
-            },
-            {
-              icon: <Image src="/meta-llama.png" alt="AI" width={28} height={28} className="invert" />,
-              title: 'Llama 3.3 AI Audit',
-              desc: 'Every file reviewed the moment it arrives. Expired docs, wrong formats, missing info â€” caught automatically.',
-              flavor: 'postit' as const, decoration: 'tack' as const, rotate: '1' as const,
-            },
-            {
-              icon: <Lock className="w-7 h-7" strokeWidth={2.5} />,
-              title: 'Secure by Default',
-              desc: 'End-to-end encrypted. Passwords never stored in plain text. RLS ensures zero data leakage.',
-              flavor: 'default' as const, decoration: 'tape' as const, rotate: '-0.5' as const,
-            },
-          ] as Array<{ icon: React.ReactNode; title: string; desc: string; flavor: 'default' | 'postit'; decoration: 'tape' | 'tack'; rotate: '-1' | '1' | '-0.5' }>).map((f) => (
-            <WobblyCard key={f.title} flavor={f.flavor} decoration={f.decoration} rotate={f.rotate} hoverable className="mt-4">
-              <div className="w-12 h-12 bg-ink text-paper flex items-center justify-center mb-5" style={{ borderRadius: '50% 45% 55% 48% / 50% 52% 48% 50%' }}>
-                {f.icon}
-              </div>
-              <h3 className="font-heading text-xl text-ink mb-3">{f.title}</h3>
-              <p className="font-body text-ink/70 text-base leading-relaxed">{f.desc}</p>
-            </WobblyCard>
-          ))}
-        </div>
-      </section>
 
       {/* â”€â”€ AI AUDIT PREVIEW â”€â”€ */}
       <AiAuditPreview />
@@ -167,7 +111,7 @@ export default function Home() {
               ? '240px 20px 220px 30px / 20px 215px 25px 230px'
               : '220px 30px 240px 20px / 25px 230px 20px 215px'
             return (
-              <div key={tier} className="relative flex-1 max-w-xs" style={{ transform: isPro ? 'translateY(-10px)' : undefined }}>
+              <div key={tier} className="relative w-full md:flex-1 md:max-w-xs" style={{ transform: isPro ? 'translateY(-10px)' : undefined }}>
                 {isPro && (
                   <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-10">
                     <span className="font-body text-xs font-bold px-4 py-1 bg-ink text-paper whitespace-nowrap" style={{ borderRadius: '20px 4px 20px 4px / 4px 20px 4px 20px' }}>
@@ -223,10 +167,10 @@ export default function Home() {
       <FaqAccordion />
 
       {/* â”€â”€ FINAL CTA â”€â”€ */}
-      <section className="max-w-5xl mx-auto px-6 py-32 border-t-[3px] border-dashed border-muted">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-20 md:py-32 border-t-[3px] border-dashed border-muted">
         <div className="max-w-xl mx-auto text-center">
           <span className="tag-label">Ready?</span>
-          <h2 className="font-heading text-5xl md:text-6xl text-ink mt-4 leading-tight">
+          <h2 className="font-heading text-3xl sm:text-5xl md:text-6xl text-ink mt-4 leading-tight">
             First portal live<br />in under 5 minutes
           </h2>
           <p className="font-body text-xl text-ink/60 max-w-md mx-auto mb-10 mt-4 leading-relaxed">
@@ -246,8 +190,8 @@ export default function Home() {
       <StickyCta />
 
       {/* FOOTER */}
-      <footer className="border-t-[3px] border-dashed border-muted bg-white/40 pt-14 pb-8">
-        <div className="max-w-5xl mx-auto px-6">
+      <footer className="border-t-[3px] border-dashed border-muted bg-white/40 pt-12 pb-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
           {/* 3-column grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10 pb-10 border-b-2 border-dashed border-muted">
             {/* Brand */}
@@ -261,7 +205,7 @@ export default function Home() {
             <div>
               <p className="font-body text-xs uppercase tracking-widest text-ink/35 mb-3">Product</p>
               <div className="flex flex-col gap-2">
-                <a href="/#features" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">Features</a>
+                <a href="/#how" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">How It Works</a>
                 <a href="/#how" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">How it works</a>
                 <Link href="/pricing" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">Pricing</Link>
                 <Link href="/demo" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">Live Demo</Link>

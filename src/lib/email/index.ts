@@ -55,7 +55,8 @@ function shell(title: string, body: string): string {
           <td style="padding:16px 36px 24px;border-top:2px solid #e8e3da;">
             <p style="margin:0;font-size:12px;color:#9e9589;">
               Powered by FetchAsset &middot; AI-assisted client onboarding<br/>
-              <span style="font-size:11px;">You received this because you are part of a FetchAsset project.</span>
+              <span style="font-size:11px;">You received this because you are part of a FetchAsset project.</span><br/>
+              <span style="font-size:11px;color:#c0b8ae;">⚠️ Please do not reply to this email — it is sent automatically and is not monitored. Use the portal link above to upload files or contact your project owner directly.</span>
             </p>
           </td>
         </tr>

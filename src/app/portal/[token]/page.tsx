@@ -2,6 +2,7 @@ import React from 'react'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { PortalChecklist } from '@/components/portal/portal-checklist'
+import ContactCard from '@/components/portal/ContactCard'
 import type { Project, AssetRequest, Submission, Profile, PlanTier } from '@/lib/supabase/types'
 
 export const dynamic = 'force-dynamic'
@@ -278,6 +279,17 @@ export default async function PortalPage({ params }: PageProps) {
           </p>
         )}
       </footer>
+
+      {/* ── Contact Card (floats after 5 s) ──────────────────────── */}
+      {project.contact_visible !== false && project.contact_method && project.contact_value && (
+        <ContactCard
+          method={project.contact_method as 'email' | 'whatsapp'}
+          value={project.contact_value}
+          agencyName={agencyName}
+          projectTitle={project.title}
+          brandColor={brandColor}
+        />
+      )}
     </div>
   )
 }

@@ -227,7 +227,7 @@
 
   /* ── Section container ───────────────────────────────────────── */
   .section-container {
-    @apply max-w-5xl mx-auto px-6 py-20;
+    @apply max-w-5xl mx-auto px-4 sm:px-6 py-14 md:py-20;
   }
 
   /* ── Section heading ────────────────────────────────────────── */

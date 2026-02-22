@@ -24,6 +24,8 @@ interface CreateProjectBody {
   due_date?: string | null        // internal deadline
   buffer_days?: number
   auto_reminder?: boolean
+  contact_method?: 'email' | 'whatsapp' | null
+  contact_value?: string | null
   assets?: AssetRequestInput[]
 }
 
@@ -62,6 +64,9 @@ export async function POST(req: NextRequest) {
         due_date: body.due_date || null,
         buffer_days: body.buffer_days ?? 0,
         auto_reminder: body.auto_reminder ?? false,
+        contact_method: body.contact_method ?? null,
+        contact_value: body.contact_value?.trim() || null,
+        contact_visible: true,
         status: 'draft',
       })
       .select()

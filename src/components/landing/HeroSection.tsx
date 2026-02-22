@@ -78,8 +78,8 @@ export default function HeroSection() {
       )}
 
       {/* ── HERO ── */}
-      <section className="max-w-5xl mx-auto px-6 pt-24 pb-20">
-        <div className="grid md:grid-cols-2 gap-14 items-center">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 pt-12 pb-10 md:pt-24 md:pb-20">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-14 items-center">
 
           {/* Left: copy */}
           <motion.div
@@ -97,7 +97,7 @@ export default function HeroSection() {
 
             <motion.h1
               variants={fadeUp}
-              className="font-heading text-5xl md:text-[4rem] lg:text-[4.5rem] text-ink leading-[1.02]"
+              className="font-heading text-[2.5rem] sm:text-5xl md:text-[4rem] lg:text-[4.5rem] text-ink leading-[1.05]"
             >
               Stop chasing files.<br />
               <span className="underline-sketch">Start your projects.</span>
@@ -211,9 +211,9 @@ export default function HeroSection() {
       </section>
 
       {/* ── STATS BAR ── */}
-      <section className="border-y-[3px] border-dashed border-muted bg-white/50 py-10">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+      <section className="border-y-[3px] border-dashed border-muted bg-white/50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 md:py-14">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center">
             {STATS.map((stat, i) => (
               <motion.div
                 key={stat.label}

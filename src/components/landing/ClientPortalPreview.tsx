@@ -19,7 +19,7 @@ const PORTAL_ITEMS: PortalItem[] = [
 
 export default function ClientPortalPreview() {
   return (
-    <section className="max-w-5xl mx-auto px-6 py-28 border-t-[3px] border-dashed border-muted">
+    <section className="max-w-5xl mx-auto px-4 sm:px-6 py-16 md:py-28 border-t-[3px] border-dashed border-muted">
 
       {/* Heading */}
       <motion.div
@@ -27,10 +27,10 @@ export default function ClientPortalPreview() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-80px' }}
         transition={{ duration: 0.5, ease: 'easeOut' as const }}
-        className="text-center mb-16"
+        className="text-center mb-10 md:mb-16"
       >
         <span className="tag-label">Client experience</span>
-        <h2 className="font-heading text-5xl md:text-6xl text-ink mt-4 leading-tight">
+        <h2 className="font-heading text-3xl sm:text-5xl md:text-6xl text-ink mt-4 leading-tight">
           Your clients will love&nbsp;you.
         </h2>
         <p className="font-body text-xl text-ink/55 mt-4 max-w-lg mx-auto">
@@ -40,7 +40,7 @@ export default function ClientPortalPreview() {
       </motion.div>
 
       {/* Two-column: caption + portal mockup */}
-      <div className="grid md:grid-cols-2 gap-14 items-center">
+      <div className="grid md:grid-cols-2 gap-8 md:gap-14 items-center">
 
         {/* Left: benefit bullets */}
         <motion.div

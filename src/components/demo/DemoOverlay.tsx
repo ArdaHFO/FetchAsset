@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, Volume2, VolumeX, Zap, Check, Upload, AlertTriangle,
   ArrowRight, CheckCircle, Calendar, RotateCcw, Link2,
-  FileType,
+  FileType, PenLine, Video, Code2, Camera, Music2, Plus,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -50,6 +50,35 @@ const STEP_LABELS = [
 
 const fmt = (d: Date) =>
   d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  DEMO STATE — shared across all steps
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface DemoState {
+  niche: 'agency' | 'writer' | 'video' | 'developer' | 'photo' | 'music'
+  assetName: string
+  formats: string[]
+  customFormat: string
+  instructions: string
+}
+
+export const DEFAULT_DEMO_STATE: DemoState = {
+  niche: 'agency',
+  assetName: 'Logo Files',
+  formats: [],
+  customFormat: '',
+  instructions: '',
+}
+
+const NICHES = [
+  { id: 'agency',    label: 'Agency',   icon: <FileType size={15} />,  assetName: 'Logo Files',           formats: ['SVG','AI','EPS','PNG'],         instructions: 'Vector format required. Must include all variations. Max 10 MB.' },
+  { id: 'writer',    label: 'Writer',   icon: <PenLine  size={15} />,  assetName: '500-word Blog Post',   formats: ['DOCX','PDF','TXT'],            instructions: 'Word count: 500 words min. Must include headings and metadata.' },
+  { id: 'video',     label: 'Video Ed', icon: <Video    size={15} />,  assetName: '4K Footage',           formats: ['MP4','MOV','PRORES'],          instructions: '4K resolution minimum (3840×2160). 24fps or 30fps. No watermarks.' },
+  { id: 'developer', label: 'Dev',      icon: <Code2    size={15} />,  assetName: 'Python Script',        formats: ['PY','ZIP','TAR.GZ'],           instructions: 'Include requirements.txt. All functions must be documented.' },
+  { id: 'photo',     label: 'Photo',    icon: <Camera   size={15} />,  assetName: 'Product Photos',       formats: ['RAW','DNG','TIFF','JPEG'],     instructions: 'High-res only (min 3000px on longest side). No heavy editing.' },
+  { id: 'music',     label: 'Audio',    icon: <Music2   size={15} />,  assetName: 'Stems & Master',       formats: ['WAV','AIFF','FLAC'],           instructions: '24-bit / 48kHz minimum. Provide both wet and dry stems.' },
+] as const
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  SHARED ANIMATION VARIANTS
@@ -460,86 +489,188 @@ function Step1SmartSetup({ onNext }: { onNext: () => void }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  STEP 2: AI Specifications
+//  STEP 2: AI Specifications — Universal Asset Builder
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Step2AiSpec({ onNext }: { onNext: () => void }) {
+function Step2AiSpec({
+  onNext,
+  demoState,
+  setDemoState,
+}: {
+  onNext: () => void
+  demoState: DemoState
+  setDemoState: (s: DemoState) => void
+}) {
   const [aiSuggested, setAiSuggested] = useState(false)
-  const [aiLoading, setAiLoading] = useState(false)
-  const [renameOn, setRenameOn] = useState(false)
-  const [types, setTypes] = useState<string[]>([])
-  const [instructions, setInstructions] = useState('')
+  const [aiLoading, setAiLoading]     = useState(false)
+  const [renameOn, setRenameOn]       = useState(false)
+  const [customInput, setCustomInput] = useState('')
+  const [showCustom, setShowCustom]   = useState(false)
+
+  // When niche changes, reset AI state and fill preset
+  function selectNiche(nicheId: DemoState['niche']) {
+    const preset = NICHES.find(n => n.id === nicheId)!
+    setDemoState({
+      ...demoState,
+      niche: nicheId,
+      assetName: preset.assetName,
+      formats: [],
+      instructions: '',
+    })
+    setAiSuggested(false)
+  }
+
+  function toggleFormat(fmt: string) {
+    const cur = demoState.formats
+    setDemoState({
+      ...demoState,
+      formats: cur.includes(fmt) ? cur.filter(x => x !== fmt) : [...cur, fmt],
+    })
+  }
+
+  function addCustomFormat() {
+    const val = customInput.trim().toUpperCase().replace(/^\./, '')
+    if (!val) return
+    if (!demoState.formats.includes(val)) {
+      setDemoState({ ...demoState, formats: [...demoState.formats, val], customFormat: val })
+    }
+    setCustomInput('')
+    setShowCustom(false)
+  }
 
   function handleAiSuggest() {
     if (aiSuggested) return
     setAiLoading(true)
+    const preset = NICHES.find(n => n.id === demoState.niche)!
     setTimeout(() => {
       setAiLoading(false)
       setAiSuggested(true)
-      setTypes(['SVG', 'AI'])
-      setInstructions('Vector format required. Must include all variations (horizontal, vertical, icon-only). Max 10 MB per file.')
-      setTimeout(() => setRenameOn(true), 800)
+      setDemoState({ ...demoState, formats: [...preset.formats], instructions: preset.instructions })
+      setTimeout(() => setRenameOn(true), 700)
     }, 1800)
   }
 
-  const FILE_TYPES = ['SVG', 'PNG', 'AI', 'EPS', 'PDF', 'JPG']
+  const preset    = NICHES.find(n => n.id === demoState.niche)!
+  const allFmts   = preset.formats as unknown as string[]
+  const canSubmit = demoState.assetName.trim().length > 0
 
   return (
     <motion.div variants={stepVariants} initial="initial" animate="animate" exit="exit" className="w-full max-w-xl">
       <StepBadge step={3} label={STEP_LABELS[2]} />
       <div className="text-center mb-8">
         <h2 className="font-heading text-4xl md:text-5xl text-ink">AI Builds the Spec</h2>
-        <p className="font-body text-ink/50 mt-2">One click. Llama 3.3 fills in every requirement.</p>
+        <p className="font-body text-ink/50 mt-2">Works for every type of freelancer. One click fills everything.</p>
       </div>
 
       <WobblyCard flavor="default" decoration="tape" rotate="0.5" shadow="lg">
         <WobblyCardHeader>
-          <div className="flex items-center gap-2">
-            <FileType size={16} className="text-ink/60" />
-            <WobblyCardTitle className="text-lg">Asset Request: Logo Files</WobblyCardTitle>
-          </div>
-          <WobblyCardDescription>Acme Corp &mdash; Brand Identity</WobblyCardDescription>
+          <WobblyCardTitle className="text-lg">Asset Request Builder</WobblyCardTitle>
+          <WobblyCardDescription>What kind of freelancer are you?</WobblyCardDescription>
         </WobblyCardHeader>
         <WobblyCardContent>
           <div className="flex flex-col gap-5">
 
-            {/* File type badges */}
+            {/* Niche selector */}
             <div>
-              <p className="font-body text-xs text-ink/45 uppercase tracking-wider mb-2">Accepted formats</p>
+              <p className="font-body text-xs text-ink/45 uppercase tracking-wider mb-2">Your niche</p>
               <div className="flex flex-wrap gap-2">
-                {FILE_TYPES.map(t => (
+                {NICHES.map(n => (
                   <motion.button
-                    key={t}
+                    key={n.id}
                     animate={
-                      types.includes(t)
+                      demoState.niche === n.id
                         ? { backgroundColor: '#2d2d2d', color: '#FAFAF7', borderColor: '#2d2d2d', scale: 1.06 }
                         : { backgroundColor: '#FAFAF7', color: '#2d2d2d', borderColor: 'rgba(45,45,45,0.2)', scale: 1 }
                     }
                     transition={{ type: 'spring', stiffness: 320 }}
-                    onClick={() => setTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])}
-                    className="font-body text-xs px-3 py-1.5 border-2 font-semibold"
+                    onClick={() => selectNiche(n.id as DemoState['niche'])}
+                    className="font-body text-xs px-3 py-1.5 border-2 font-semibold flex items-center gap-1.5"
                     style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
                   >
-                    {t}
+                    {n.icon}
+                    {n.label}
                   </motion.button>
                 ))}
               </div>
             </div>
 
-            {/* Size limit */}
+            {/* Asset name input */}
             <div>
-              <p className="font-body text-xs text-ink/45 uppercase tracking-wider mb-2">Max file size</p>
-              <div className="flex gap-2">
-                {['5 MB', '10 MB', '50 MB', '500 MB'].map(s => (
-                  <button
-                    key={s}
-                    type="button"
-                    className={`font-body text-xs px-3 py-1.5 border-2 ${s === '10 MB' && aiSuggested ? 'bg-ink text-paper border-ink' : 'border-ink/20 text-ink/50'}`}
+              <p className="font-body text-xs text-ink/45 uppercase tracking-wider mb-2">Asset name</p>
+              <input
+                value={demoState.assetName}
+                onChange={e => setDemoState({ ...demoState, assetName: e.target.value })}
+                placeholder="e.g. 500-word Blog Post, 4K Drone Footage, Python Script…"
+                className="w-full p-3 border-2 border-ink/25 font-body text-sm text-ink bg-paper/80 outline-none focus:border-ink"
+                style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
+              />
+            </div>
+
+            {/* Format chips */}
+            <div>
+              <p className="font-body text-xs text-ink/45 uppercase tracking-wider mb-2">Accepted formats</p>
+              <div className="flex flex-wrap gap-2">
+                {allFmts.map(t => (
+                  <motion.button
+                    key={t}
+                    animate={
+                      demoState.formats.includes(t)
+                        ? { backgroundColor: '#2d2d2d', color: '#FAFAF7', borderColor: '#2d2d2d', scale: 1.06 }
+                        : { backgroundColor: '#FAFAF7', color: '#2d2d2d', borderColor: 'rgba(45,45,45,0.2)', scale: 1 }
+                    }
+                    transition={{ type: 'spring', stiffness: 320 }}
+                    onClick={() => toggleFormat(t)}
+                    className="font-body text-xs px-3 py-1.5 border-2 font-semibold"
                     style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
                   >
-                    {s}
-                  </button>
+                    .{t.toLowerCase()}
+                  </motion.button>
                 ))}
+
+                {/* Custom format badges */}
+                {demoState.formats.filter(f => !allFmts.includes(f)).map(f => (
+                  <motion.button
+                    key={f}
+                    animate={{ backgroundColor: '#7c3aed', color: '#fff', borderColor: '#7c3aed', scale: 1 }}
+                    onClick={() => toggleFormat(f)}
+                    className="font-body text-xs px-3 py-1.5 border-2 font-semibold"
+                    style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+                    title="Click to remove"
+                  >
+                    .{f.toLowerCase()} ✕
+                  </motion.button>
+                ))}
+
+                {/* Add custom format */}
+                {showCustom ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      autoFocus
+                      value={customInput}
+                      onChange={e => setCustomInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && addCustomFormat()}
+                      placeholder=".ext"
+                      className="w-20 px-2 py-1 border-2 border-ink/30 font-body text-xs outline-none focus:border-ink"
+                      style={{ borderRadius: '8px' }}
+                    />
+                    <button
+                      onClick={addCustomFormat}
+                      className="font-body text-xs px-2 py-1 bg-ink text-paper border-2 border-ink"
+                      style={{ borderRadius: '8px' }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowCustom(true)}
+                    className="font-body text-xs px-3 py-1.5 border-2 border-dashed border-ink/30 text-ink/50 flex items-center gap-1 hover:border-ink hover:text-ink transition-colors"
+                    style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+                    title="Add a custom file extension"
+                  >
+                    <Plus size={11} /> custom
+                  </button>
+                )}
               </div>
             </div>
 
@@ -554,7 +685,7 @@ function Step2AiSpec({ onNext }: { onNext: () => void }) {
                   <motion.span animate={{ opacity: [0.3,1,0.3] }} transition={{ duration: 0.9, repeat: Infinity }}>
                     Llama 3.3 is writing instructions…
                   </motion.span>
-                ) : instructions || (
+                ) : demoState.instructions || (
                   <span className="text-ink/30">AI will fill this in for you…</span>
                 )}
               </div>
@@ -562,12 +693,7 @@ function Step2AiSpec({ onNext }: { onNext: () => void }) {
 
             {/* AI Suggest button */}
             {!aiSuggested && (
-              <WobblyButton
-                size="md"
-                className="w-full gap-2"
-                onClick={handleAiSuggest}
-                disabled={aiLoading}
-              >
+              <WobblyButton size="md" className="w-full gap-2" onClick={handleAiSuggest} disabled={aiLoading || !canSubmit}>
                 {aiLoading ? (
                   <>
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' as const }}>
@@ -578,7 +704,7 @@ function Step2AiSpec({ onNext }: { onNext: () => void }) {
                 ) : (
                   <>
                     <Image src="/meta-llama.png" alt="" width={16} height={16} />
-                    ✨ AI Suggest &mdash; auto-fill specs
+                    ✨ AI Suggest — auto-fill formats &amp; instructions
                   </>
                 )}
               </WobblyButton>
@@ -593,7 +719,7 @@ function Step2AiSpec({ onNext }: { onNext: () => void }) {
               >
                 <CheckCircle size={15} className="text-green-600" />
                 <p className="font-body text-xs text-green-700">
-                  <strong>Llama 3.3 auto-selected:</strong> SVG + AI formats, 10 MB limit, vector instructions filled.
+                  <strong>Llama 3.3 auto-filled:</strong> {demoState.formats.join(', ')} formats + instructions for <em>{demoState.assetName}</em>.
                 </p>
               </motion.div>
             )}
@@ -624,14 +750,28 @@ function Step2AiSpec({ onNext }: { onNext: () => void }) {
 //  STEP 3: Magic Link Generated
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Step3MagicLink({ onNext }: { onNext: () => void }) {
+function Step3MagicLink({
+  onNext,
+  demoState,
+  onOpenPortal,
+}: {
+  onNext: () => void
+  demoState: DemoState
+  onOpenPortal: () => void
+}) {
   const [emailVisible, setEmailVisible] = useState(false)
-  const MAGIC_URL = 'fetchasset.com/portal/acme-corp-✨-x7k9m'
+  const [copied, setCopied] = useState(false)
+  const MAGIC_URL = 'fetchasset.com/demo/preview-portal'
 
   useEffect(() => {
     const t = setTimeout(() => setEmailVisible(true), 1200)
     return () => clearTimeout(t)
   }, [])
+
+  function handleCopy() {
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1800)
+  }
 
   return (
     <motion.div variants={stepVariants} initial="initial" animate="animate" exit="exit" className="w-full max-w-xl">
@@ -647,27 +787,36 @@ function Step3MagicLink({ onNext }: { onNext: () => void }) {
             <Link2 size={16} className="text-ink/60" />
             <WobblyCardTitle className="text-lg">Link Generated</WobblyCardTitle>
           </div>
-          <WobblyCardDescription>Acme Corp &mdash; Brand Identity</WobblyCardDescription>
+          <WobblyCardDescription>Asset: <strong>{demoState.assetName || 'Your Asset'}</strong></WobblyCardDescription>
         </WobblyCardHeader>
         <WobblyCardContent>
           <div className="flex flex-col gap-5">
 
-            {/* URL pill */}
+            {/* Clickable URL pill */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-              className="flex items-center gap-2 p-3 bg-paper border-[3px] border-ink"
-              style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '4px 4px 0 0 #2d2d2d' }}
             >
-              <Link2 size={14} className="text-ink/40 flex-shrink-0" />
-              <span className="font-body text-sm text-ink flex-1 truncate">{MAGIC_URL}</span>
-              <span
-                className="font-body text-xs bg-ink text-paper px-2 py-0.5 flex-shrink-0"
-                style={{ borderRadius: '20px' }}
+              <WobblyTooltip delay={0.6} side="top">
+                👆 Click this link to preview the client portal!
+              </WobblyTooltip>
+              <button
+                onClick={onOpenPortal}
+                className="mt-2 w-full flex items-center gap-2 p-3 bg-paper border-[3px] border-ink hover:bg-[#fffde7] transition-colors group"
+                style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '4px 4px 0 0 #2d2d2d' }}
               >
-                Copy
-              </span>
+                <Link2 size={14} className="text-ink/40 flex-shrink-0" />
+                <span className="font-body text-sm text-ink flex-1 truncate text-left group-hover:underline">{MAGIC_URL}</span>
+                <motion.span
+                  animate={copied ? { backgroundColor: '#22c55e', color: '#fff' } : { backgroundColor: '#2d2d2d', color: '#FAFAF7' }}
+                  onClick={(e) => { e.stopPropagation(); handleCopy() }}
+                  className="font-body text-xs px-2 py-0.5 flex-shrink-0 cursor-pointer"
+                  style={{ borderRadius: '20px' }}
+                >
+                  {copied ? '✓ Copied' : 'Copy'}
+                </motion.span>
+              </button>
             </motion.div>
 
             {/* No-password badge */}
@@ -706,24 +855,29 @@ function Step3MagicLink({ onNext }: { onNext: () => void }) {
                   </div>
                   <div className="p-5 bg-[#faf8f5] flex flex-col gap-3">
                     <div className="font-body text-xs text-ink/40 flex gap-4 flex-wrap">
-                      <span><strong>To:</strong> ali@acmecorp.com</span>
-                      <span><strong>Subject:</strong> Your files are needed &mdash; Brand Identity</span>
+                      <span><strong>To:</strong> you@client.com</span>
+                      <span><strong>Subject:</strong> Your files are needed &mdash; {demoState.assetName || 'Asset Request'}</span>
                     </div>
-                    <p className="font-heading text-lg text-ink">Hey Ali, your portal is ready! 🎉</p>
+                    <p className="font-heading text-lg text-ink">Hey! 👋 Your portal is ready.</p>
                     <p className="font-body text-sm text-ink/70 leading-relaxed">
-                      Please upload the files for <strong>Acme Corp &mdash; Brand Identity</strong>.
-                      Deadline: <em>Wednesday, 25 February</em>.
+                      Please upload: <strong>{demoState.assetName || 'the requested asset'}</strong>.
+                      {demoState.formats.length > 0 && (
+                        <> Accepted formats: <em>{demoState.formats.map(f => `.${f.toLowerCase()}`).join(', ')}</em>.</>
+                      )}
+                      {' '}Deadline: <em>Wednesday, 25 February</em>.
                     </p>
                     {/* Big CTA button mockup */}
-                    <motion.div
+                    <motion.button
+                      onClick={onOpenPortal}
                       initial={{ scale: 0.9, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
-                      className="mt-1 px-6 py-3 bg-ink text-paper font-body text-sm font-bold text-center w-full"
+                      whileHover={{ scale: 1.02 }}
+                      className="mt-1 px-6 py-3 bg-ink text-paper font-body text-sm font-bold text-center w-full cursor-pointer hover:opacity-90 transition-opacity"
                       style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '3px 3px 0 0 #e63946' }}
                     >
                       🔗 Open My Portal &mdash; No Password Needed
-                    </motion.div>
+                    </motion.button>
                   </div>
                 </motion.div>
               )}
@@ -747,7 +901,7 @@ function Step3MagicLink({ onNext }: { onNext: () => void }) {
 //  STEP 4: Client Experience — Progress Bar + File Upload
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Step4ClientView({ onNext }: { onNext: () => void }) {
+function Step4ClientView({ onNext, demoState }: { onNext: () => void; demoState: DemoState }) {
   const [progress, setProgress] = useState(0)
   const [fileArrived, setFileArrived] = useState(false)
   const [uploaded, setUploaded] = useState(false)
@@ -765,6 +919,10 @@ function Step4ClientView({ onNext }: { onNext: () => void }) {
     progress === 100 ? '#22c55e' :
     progress >= 60   ? '#f59e0b' : '#2d2d2d'
 
+  const fmtList = demoState.formats.length > 0
+    ? demoState.formats.map(f => f.toUpperCase()).join(', ')
+    : 'Any format'
+
   return (
     <motion.div variants={stepVariants} initial="initial" animate="animate" exit="exit" className="w-full max-w-xl">
       <StepBadge step={5} label={STEP_LABELS[4]} />
@@ -781,20 +939,15 @@ function Step4ClientView({ onNext }: { onNext: () => void }) {
         {/* Portal header */}
         <div className="bg-[#FAFAF7] border-b-2 border-ink/10 px-5 py-4">
           <div className="flex items-center justify-between mb-0.5">
-            <p className="font-heading text-xl text-ink">Acme Corp &mdash; Brand Identity</p>
-            {/* Brand Hub callout */}
+            <p className="font-heading text-xl text-ink">{demoState.assetName || 'Asset Request'}</p>
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.8, type: 'spring', stiffness: 200 }}
               className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 border-2 border-ink/20 bg-[#fffde7]"
               style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
-              title="Agency Branding Hub — Settings → Branding tab"
             >
-              <span
-                className="w-3 h-3 rounded-full border border-ink/30"
-                style={{ background: '#2d5da1' }}
-              />
+              <span className="w-3 h-3 rounded-full border border-ink/30" style={{ background: '#2d5da1' }} />
               <span className="font-body text-[10px] text-ink/60">Your brand, your colors ✦</span>
             </motion.div>
           </div>
@@ -804,10 +957,7 @@ function Step4ClientView({ onNext }: { onNext: () => void }) {
               <span>{progress === 0 ? 'No files uploaded yet' : progress === 50 ? 'Great start! ✨' : 'All done! 🎉'}</span>
               <span>{progress}%</span>
             </div>
-            <div
-              className="w-full h-3 bg-muted border-2 border-ink/20 overflow-hidden"
-              style={{ borderRadius: '255px' }}
-            >
+            <div className="w-full h-3 bg-muted border-2 border-ink/20 overflow-hidden" style={{ borderRadius: '255px' }}>
               <motion.div
                 animate={{ width: `${progress}%`, backgroundColor: progressColor }}
                 transition={{ duration: 0.7, ease: 'easeOut' as const }}
@@ -821,7 +971,7 @@ function Step4ClientView({ onNext }: { onNext: () => void }) {
         {/* Upload area */}
         <div className="p-5">
           <p className="font-body text-sm text-ink/60 mb-3">
-            <strong className="text-ink">Asset 1 of 2:</strong> Logo Files (SVG or AI format)
+            <strong className="text-ink">Asset 1 of 1:</strong> {demoState.assetName || 'Requested Asset'} ({fmtList})
           </p>
           <motion.div
             animate={
@@ -836,7 +986,7 @@ function Step4ClientView({ onNext }: { onNext: () => void }) {
               <>
                 <Upload className="w-9 h-9 text-ink/22" />
                 <p className="font-body text-sm text-ink/40 text-center">Drop files here or click to browse</p>
-                <p className="font-body text-xs text-ink/30">Accepted: SVG, AI &middot; Max 10 MB</p>
+                <p className="font-body text-xs text-ink/30">Accepted: {fmtList}</p>
                 {fileArrived && (
                   <motion.div
                     initial={{ x: 200, y: -40, opacity: 0, rotate: 15 }}
@@ -848,7 +998,7 @@ function Step4ClientView({ onNext }: { onNext: () => void }) {
                       className="bg-amber-50 border-2 border-amber-400 px-4 py-1.5 font-body text-xs text-amber-800 flex items-center gap-2"
                       style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px', boxShadow: '2px 2px 0 0 #d97706' }}
                     >
-                      ⚠️ logo_low_res.jpg &mdash; dropping…
+                      ⚠️ wrong_file.jpg &mdash; dropping…
                     </div>
                   </motion.div>
                 )}
@@ -862,7 +1012,7 @@ function Step4ClientView({ onNext }: { onNext: () => void }) {
               >
                 <CheckCircle className="w-12 h-12 text-green-500" strokeWidth={2} />
                 <p className="font-heading text-xl text-green-700">Uploaded!</p>
-                <p className="font-body text-xs text-ink/40">logo_low_res.jpg &middot; 1.2 MB</p>
+                <p className="font-body text-xs text-ink/40">wrong_file.jpg &middot; 1.2 MB</p>
               </motion.div>
             )}
           </motion.div>
@@ -881,11 +1031,65 @@ function Step4ClientView({ onNext }: { onNext: () => void }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  STEP 5: AI Audit Wow — Error + Reupload + Green Check
+//  STEP 5: AI Audit — Universal, context-aware error + reupload + green check
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Step5AiAudit({ onNext }: { onNext: () => void }) {
+function getAuditScenario(ds: DemoState) {
+  switch (ds.niche) {
+    case 'writer':    return {
+      badFile:    'blog_draft.pdf',
+      error:      'Wrong format',
+      detail:     'PDF received — DOCX required for collaborative editing and revision tracking.',
+      suggestion: 'Export from Google Docs / Word as .docx.',
+      goodFile:   'blog_post_final.docx',
+      okMsg:      'DOCX confirmed — 512 words, headings present, metadata complete.',
+    }
+    case 'video':     return {
+      badFile:    'clip_720p.mov',
+      error:      'Resolution too low',
+      detail:     '1280×720 found — 4K (3840×2160) minimum required.',
+      suggestion: 'Re-export from your NLE at full 4K. No compression.',
+      goodFile:   '4k_footage_final.mp4',
+      okMsg:      '3840×2160 @ 30fps — format and resolution confirmed.',
+    }
+    case 'developer': return {
+      badFile:    'script_no_deps.zip',
+      error:      'Missing requirements.txt',
+      detail:     'No dependency manifest found inside the .zip archive.',
+      suggestion: 'Run `pip freeze > requirements.txt` and re-zip with it included.',
+      goodFile:   'project_with_deps.zip',
+      okMsg:      'requirements.txt found — all 7 dependencies listed. README included.',
+    }
+    case 'photo':     return {
+      badFile:    'photo_compressed.jpg',
+      error:      'Resolution too low',
+      detail:     '800×600px found — minimum 3000px on the longest side required.',
+      suggestion: 'Export from Lightroom at full resolution (no compression preset).',
+      goodFile:   'product_shot.dng',
+      okMsg:      '6000×4000px DNG — print-ready quality confirmed.',
+    }
+    case 'music':     return {
+      badFile:    'master_export.mp3',
+      error:      'Wrong format / bit depth',
+      detail:     'MP3 received — 24-bit WAV/AIFF required for mastering.',
+      suggestion: 'Bounce from your DAW as 24-bit 48kHz WAV.',
+      goodFile:   'master_24bit.wav',
+      okMsg:      '24-bit 48kHz WAV — studio quality confirmed. Wet + dry stems included.',
+    }
+    default:          return {
+      badFile:    'logo_low_res.jpg',
+      error:      'Image too low resolution for print',
+      detail:     '72 DPI found — 300 DPI minimum required.',
+      suggestion: 'Upload a vector file (SVG or AI) instead of a raster image.',
+      goodFile:   'logo_final.svg',
+      okMsg:      'Vector format confirmed — scalable, print-ready, all variations included.',
+    }
+  }
+}
+
+function Step5AiAudit({ onNext, demoState }: { onNext: () => void; demoState: DemoState }) {
   const [phase, setPhase] = useState<'scanning' | 'error' | 'reupload' | 'success'>('scanning')
+  const scenario = getAuditScenario(demoState)
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase('error'), 2400)
@@ -897,12 +1101,14 @@ function Step5AiAudit({ onNext }: { onNext: () => void }) {
     setTimeout(() => setPhase('success'), 2200)
   }
 
+  const aiPrompt = `Verify if this file matches the user's request: "${demoState.assetName || 'Asset'}"${demoState.formats.length > 0 ? ` in ${demoState.formats.join('/')} format` : ''}${demoState.instructions ? ` — constraints: ${demoState.instructions.slice(0, 60)}…` : ''}`
+
   return (
     <motion.div variants={stepVariants} initial="initial" animate="animate" exit="exit" className="w-full max-w-xl">
       <StepBadge step={6} label={STEP_LABELS[5]} />
       <div className="text-center mb-8">
         <h2 className="font-heading text-4xl md:text-5xl text-ink">Llama 3.3 is on it 🤖</h2>
-        <p className="font-body text-ink/50 mt-2">Every file reviewed the moment it arrives. No waiting.</p>
+        <p className="font-body text-ink/50 mt-2 text-xs">{aiPrompt}</p>
       </div>
 
       <WobblyCard flavor="postit" decoration="tack" rotate="-1" shadow="lg">
@@ -911,27 +1117,18 @@ function Step5AiAudit({ onNext }: { onNext: () => void }) {
 
             {/* Scanning */}
             {phase === 'scanning' && (
-              <motion.div
-                key="scanning"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+              <motion.div key="scanning" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="flex flex-col items-center gap-6 py-10"
               >
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1.6, repeat: Infinity, ease: 'linear' as const }}
-                >
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.6, repeat: Infinity, ease: 'linear' as const }}>
                   <Image src="/meta-llama.png" alt="AI scanning" width={52} height={52} />
                 </motion.div>
                 <div className="text-center">
-                  <p className="font-heading text-2xl text-ink">Scanning: logo_low_res.jpg</p>
-                  <p className="font-body text-xs text-ink/40 mt-1">Checking resolution, format, completeness…</p>
+                  <p className="font-heading text-2xl text-ink">Scanning: {scenario.badFile}</p>
+                  <p className="font-body text-xs text-ink/40 mt-1">Checking against: <em>{demoState.assetName || 'Asset'}</em> requirements…</p>
                   <div className="flex justify-center gap-1.5 mt-4">
                     {[0,1,2,3,4].map((i) => (
-                      <motion.div
-                        key={i}
-                        className="w-2 h-2 bg-ink rounded-full"
+                      <motion.div key={i} className="w-2 h-2 bg-ink rounded-full"
                         animate={{ opacity: [0.1, 1, 0.1], y: [0, -4, 0] }}
                         transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }}
                       />
@@ -943,93 +1140,63 @@ function Step5AiAudit({ onNext }: { onNext: () => void }) {
 
             {/* Error found */}
             {phase === 'error' && (
-              <motion.div
-                key="error"
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col gap-4"
-              >
+              <motion.div key="error" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col gap-4">
                 <div className="flex items-center gap-3">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 320, delay: 0.1 }}
-                    className="w-11 h-11 bg-red-500 text-paper flex items-center justify-center flex-shrink-0"
-                    style={{ borderRadius: '50%' }}
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 320, delay: 0.1 }}
+                    className="w-11 h-11 bg-red-500 text-paper flex items-center justify-center flex-shrink-0" style={{ borderRadius: '50%' }}
                   >
                     <AlertTriangle size={20} strokeWidth={2.5} />
                   </motion.div>
                   <div>
                     <p className="font-heading text-lg text-red-600">Issue Detected ⚠️</p>
-                    <p className="font-body text-xs text-ink/45">logo_low_res.jpg</p>
+                    <p className="font-body text-xs text-ink/45">{scenario.badFile}</p>
                   </div>
                 </div>
 
-                <motion.div
-                  initial={{ x: -10, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
+                <motion.div initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }}
                   className="border-[3px] border-red-400 bg-red-50 px-4 py-3"
                   style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px' }}
                 >
                   <div className="flex items-start gap-2">
                     <Zap size={14} className="text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" />
                     <div>
-                      <p className="font-body text-sm font-bold text-red-700">Image too low resolution for print use</p>
-                      <p className="font-body text-xs text-red-400 mt-0.5">Found: 72 DPI &mdash; Required: 300 DPI minimum</p>
+                      <p className="font-body text-sm font-bold text-red-700">{scenario.error}</p>
+                      <p className="font-body text-xs text-red-400 mt-0.5">{scenario.detail}</p>
                     </div>
                   </div>
                 </motion.div>
 
-                <motion.div
-                  initial={{ x: -10, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.35 }}
+                <motion.div initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.35 }}
                   className="border-2 border-ink/15 bg-amber-50/60 px-4 py-3"
                   style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px' }}
                 >
                   <p className="font-body text-xs text-ink/65">
-                    <strong>🤖 AI Suggestion:</strong> Please upload a vector file (SVG or AI) instead.
-                    Export from Illustrator at 300+ DPI, or provide the original source file.
+                    <strong>🤖 AI Suggestion:</strong> {scenario.suggestion}
                   </p>
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-                  <WobblyButton
-                    size="md"
-                    className="w-full gap-2"
-                    onClick={handleReupload}
-                    variant="secondary"
-                  >
-                    Upload the correct file (logo.svg) <ArrowRight size={14} strokeWidth={3} />
+                  <WobblyButton size="md" className="w-full gap-2" onClick={handleReupload} variant="secondary">
+                    Upload the correct file ({scenario.goodFile}) <ArrowRight size={14} strokeWidth={3} />
                   </WobblyButton>
                 </motion.div>
               </motion.div>
             )}
 
-            {/* Re-scanning SVG */}
+            {/* Re-scanning */}
             {phase === 'reupload' && (
-              <motion.div
-                key="reupload"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+              <motion.div key="reupload" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="flex flex-col items-center gap-6 py-10"
               >
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' as const }}
-                >
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' as const }}>
                   <Image src="/meta-llama.png" alt="AI scanning" width={52} height={52} />
                 </motion.div>
                 <div className="text-center">
-                  <p className="font-heading text-2xl text-ink">Scanning: logo.svg</p>
-                  <p className="font-body text-xs text-ink/40 mt-1">Verifying vector format…</p>
+                  <p className="font-heading text-2xl text-ink">Scanning: {scenario.goodFile}</p>
+                  <p className="font-body text-xs text-ink/40 mt-1">Verifying against requirements…</p>
                   <div className="flex justify-center gap-1.5 mt-4">
                     {[0,1,2,3,4].map((i) => (
-                      <motion.div
-                        key={i}
-                        className="w-2 h-2 bg-green-500 rounded-full"
+                      <motion.div key={i} className="w-2 h-2 bg-green-500 rounded-full"
                         animate={{ opacity: [0.1, 1, 0.1], y: [0, -4, 0] }}
                         transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.12 }}
                       />
@@ -1041,49 +1208,32 @@ function Step5AiAudit({ onNext }: { onNext: () => void }) {
 
             {/* Success */}
             {phase === 'success' && (
-              <motion.div
-                key="success"
-                initial={{ opacity: 0, scale: 0.94 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col gap-4"
-              >
+              <motion.div key="success" initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col gap-4">
                 <div className="flex items-center gap-3">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 320 }}
-                    className="w-11 h-11 bg-green-500 text-paper flex items-center justify-center flex-shrink-0"
-                    style={{ borderRadius: '50%' }}
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 320 }}
+                    className="w-11 h-11 bg-green-500 text-paper flex items-center justify-center flex-shrink-0" style={{ borderRadius: '50%' }}
                   >
                     <Check size={20} strokeWidth={3} />
                   </motion.div>
                   <div>
                     <p className="font-heading text-lg text-green-600">Perfect File ✅</p>
-                    <p className="font-body text-xs text-ink/45">logo.svg</p>
+                    <p className="font-body text-xs text-ink/45">{scenario.goodFile}</p>
                   </div>
                 </div>
 
-                <motion.div
-                  initial={{ x: -10, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
+                <motion.div initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }}
                   className="border-[3px] border-green-400 bg-green-50 px-4 py-3"
                   style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px' }}
                 >
-                  <p className="font-body text-sm font-bold text-green-700">Vector format confirmed &mdash; no issues found</p>
-                  <p className="font-body text-xs text-green-500 mt-0.5">Scalable &middot; Print-ready &middot; All variations included</p>
+                  <p className="font-body text-sm font-bold text-green-700">{scenario.okMsg}</p>
                 </motion.div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="p-3 bg-[#f0fdf4] border-2 border-green-200"
-                  style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+                  className="p-3 bg-[#f0fdf4] border-2 border-green-200" style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
                 >
                   <p className="font-body text-xs text-green-600 mb-1">🏷️ Auto-renamed on arrival:</p>
-                  <p className="font-body text-sm font-bold text-green-800">AcmeCorp_Logo_BrandIdentity_20260222.svg</p>
-                  <p className="font-body text-xs text-green-500 mt-0.5">ClientSlug_Asset_Project_Date &middot; No manual sorting needed</p>
+                  <p className="font-body text-sm font-bold text-green-800">Client_{demoState.assetName.replace(/\s+/g,'')}_20260225{scenario.goodFile.slice(scenario.goodFile.lastIndexOf('.'))}</p>
+                  <p className="font-body text-xs text-green-500 mt-0.5">ClientSlug_Asset_Date &middot; No manual sorting needed</p>
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
@@ -1104,7 +1254,8 @@ function Step5AiAudit({ onNext }: { onNext: () => void }) {
 //  STEP 6: Success & Organisation — Agency view + CTA
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Step6Success({ onRestart }: { onRestart: () => void }) {
+function Step6Success({ onRestart, demoState }: { onRestart: () => void; demoState: DemoState }) {
+  const scenario = getAuditScenario(demoState)
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -1119,17 +1270,8 @@ function Step6Success({ onRestart }: { onRestart: () => void }) {
         transition={{ delay: 0.1, type: 'spring', stiffness: 130, damping: 12 }}
         className="flex justify-center mb-3"
       >
-        <motion.div
-          animate={{ y: [0, -12, 0] }}
-          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' as const }}
-        >
-          <Image
-            src="/paperclip1.png"
-            alt="FetchAsset Mascot celebrating"
-            width={160}
-            height={160}
-            style={{ mixBlendMode: 'multiply' }}
-          />
+        <motion.div animate={{ y: [0, -12, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' as const }}>
+          <Image src="/paperclip1.png" alt="FetchAsset Mascot celebrating" width={160} height={160} style={{ mixBlendMode: 'multiply' }} />
         </motion.div>
       </motion.div>
 
@@ -1148,29 +1290,19 @@ function Step6Success({ onRestart }: { onRestart: () => void }) {
           style={{ borderRadius: '12px 3px 14px 3px / 3px 14px 3px 12px', boxShadow: '4px 4px 0 0 #2d2d2d' }}
         >
           <div className="bg-ink text-paper px-4 py-2 flex items-center gap-2">
-            <span className="font-body text-xs opacity-60">📁 Agency Dashboard &mdash; Acme Corp</span>
-            <span
-              className="ml-auto font-body text-xs bg-green-400 text-ink px-2 py-0.5"
-              style={{ borderRadius: '20px' }}
-            >
-              COMPLETE
-            </span>
+            <span className="font-body text-xs opacity-60">📁 Agency Dashboard &mdash; {demoState.assetName || 'Asset Request'}</span>
+            <span className="ml-auto font-body text-xs bg-green-400 text-ink px-2 py-0.5" style={{ borderRadius: '20px' }}>COMPLETE</span>
           </div>
           <div className="p-4 bg-[#faf8f5] flex flex-col gap-2">
             <div className="flex items-center gap-2 font-body text-sm">
               <CheckCircle size={14} className="text-green-600" strokeWidth={2.5} />
-              <span className="text-ink/80 line-through">logo_low_res.jpg</span>
+              <span className="text-ink/80 line-through">{scenario.badFile}</span>
               <span className="text-red-400 text-xs">rejected by AI</span>
             </div>
             <div className="flex items-center gap-2 font-body text-sm">
               <CheckCircle size={14} className="text-green-600" strokeWidth={2.5} />
-              <span className="text-green-700 font-semibold">AcmeCorp_Logo_BrandIdentity_20260222.svg</span>
-              <span
-                className="font-body text-xs bg-green-100 text-green-700 px-2 py-0.5"
-                style={{ borderRadius: '20px' }}
-              >
-                ✅ AI approved
-              </span>
+              <span className="text-green-700 font-semibold">Client_{demoState.assetName.replace(/\s+/g,'')}_20260225{scenario.goodFile.slice(scenario.goodFile.lastIndexOf('.'))}</span>
+              <span className="font-body text-xs bg-green-100 text-green-700 px-2 py-0.5" style={{ borderRadius: '20px' }}>✅ AI approved</span>
             </div>
             <div className="mt-1 pt-2 border-t border-ink/10 font-body text-xs text-ink/45">
               Files auto-organised &middot; Deadline buffer secured &middot; Zero manual work
@@ -1178,7 +1310,6 @@ function Step6Success({ onRestart }: { onRestart: () => void }) {
           </div>
         </motion.div>
 
-        {/* Stop chasing headline */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -1210,18 +1341,182 @@ function Step6Success({ onRestart }: { onRestart: () => void }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  DEMO PORTAL MODAL — "Live link" preview: client-side interactive portal
+// ─────────────────────────────────────────────────────────────────────────────
+
+function DemoPortalModal({ demoState, onClose }: { demoState: DemoState; onClose: () => void }) {
+  const [phase, setPhase] = useState<'portal' | 'uploading' | 'scanning' | 'success'>('portal')
+  const scenario  = getAuditScenario(demoState)
+  const fmtList   = demoState.formats.length > 0
+    ? demoState.formats.map(f => `.${f.toLowerCase()}`).join(', ')
+    : 'Any format accepted'
+
+  function handleMockUpload() {
+    setPhase('uploading')
+    setTimeout(() => setPhase('scanning'), 1400)
+    setTimeout(() => setPhase('success'), 3600)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[300] bg-ink/50 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 28 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+        className="w-full max-w-lg bg-paper border-[3px] border-ink overflow-hidden"
+        style={{ borderRadius: '12px 3px 14px 3px / 3px 14px 3px 12px', boxShadow: '8px 8px 0 0 #2d2d2d' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Browser chrome */}
+        <div className="bg-ink text-paper px-5 py-3 flex items-center justify-between">
+          <div>
+            <p className="font-body text-xs">🔗 fetchasset.com/demo/preview-portal</p>
+            <p className="font-body text-[10px] opacity-40">Demo Client View — no account needed</p>
+          </div>
+          <button onClick={onClose} className="opacity-50 hover:opacity-100 transition-opacity p-1">
+            <X size={15} />
+          </button>
+        </div>
+
+        {/* Portal header */}
+        <div className="bg-[#FAFAF7] border-b-2 border-ink/10 px-5 py-4">
+          <p className="font-heading text-xl text-ink mb-0.5">{demoState.assetName || 'Asset Request'}</p>
+          <p className="font-body text-xs text-ink/40">Deadline: Wednesday, 25 February &middot; Powered by FetchAsset</p>
+          {demoState.instructions && (
+            <p className="font-body text-xs text-ink/55 mt-1.5 italic">&ldquo;{demoState.instructions}&rdquo;</p>
+          )}
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {demoState.formats.map(f => (
+              <span key={f} className="font-body text-[10px] bg-ink/8 border border-ink/15 px-2 py-0.5 text-ink/60"
+                style={{ borderRadius: '20px' }}>.{f.toLowerCase()}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <AnimatePresence mode="wait">
+
+            {/* Upload prompt */}
+            {phase === 'portal' && (
+              <motion.div key="portal" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <p className="font-body text-sm text-ink/60 mb-4">
+                  Click the button below to simulate your client uploading a file.
+                </p>
+                <motion.div
+                  className="border-[3px] border-dashed border-ink/25 p-8 flex flex-col items-center gap-4 mb-5"
+                  style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px' }}
+                >
+                  <Upload className="w-10 h-10 text-ink/20" />
+                  <p className="font-body text-sm text-ink/40 text-center">
+                    Requested: <strong className="text-ink">{demoState.assetName}</strong><br/>
+                    <span className="text-xs">{fmtList}</span>
+                  </p>
+                </motion.div>
+                <WobblyButton size="lg" className="w-full gap-2" onClick={handleMockUpload}>
+                  <Upload size={16} /> Mock Upload &mdash; Simulate Client
+                </WobblyButton>
+              </motion.div>
+            )}
+
+            {/* Uploading */}
+            {phase === 'uploading' && (
+              <motion.div key="uploading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="flex flex-col items-center gap-4 py-8"
+              >
+                <motion.div
+                  className="w-14 h-14 border-[3px] border-ink border-t-transparent rounded-full"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' as const }}
+                />
+                <p className="font-heading text-xl text-ink">Uploading…</p>
+                <p className="font-body text-xs text-ink/40">{scenario.badFile}</p>
+              </motion.div>
+            )}
+
+            {/* AI Scanning */}
+            {phase === 'scanning' && (
+              <motion.div key="scanning" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="flex flex-col items-center gap-4 py-8"
+              >
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' as const }}>
+                  <Image src="/meta-llama.png" alt="AI" width={52} height={52} />
+                </motion.div>
+                <p className="font-heading text-xl text-ink">Llama 3.3 Scanning…</p>
+                <p className="font-body text-xs text-ink/40 text-center">
+                  Checking: <em>{demoState.assetName}</em> requirements
+                </p>
+                <div className="flex gap-1.5">
+                  {[0,1,2,3,4].map(i => (
+                    <motion.div key={i} className="w-2 h-2 bg-ink rounded-full"
+                      animate={{ opacity: [0.1,1,0.1], y: [0,-4,0] }}
+                      transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Result */}
+            {phase === 'success' && (
+              <motion.div key="success" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-4">
+                {/* Error found first */}
+                <div className="border-[3px] border-red-400 bg-red-50 px-4 py-3"
+                  style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px' }}
+                >
+                  <p className="font-body text-sm font-bold text-red-700">⚠️ {scenario.error}</p>
+                  <p className="font-body text-xs text-red-400 mt-0.5">{scenario.detail}</p>
+                </div>
+                {/* AI suggestion */}
+                <div className="border-2 border-amber-300 bg-amber-50 px-4 py-3"
+                  style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
+                >
+                  <p className="font-body text-xs text-amber-800">
+                    <strong>🤖 AI to client:</strong> {scenario.suggestion}
+                  </p>
+                </div>
+                {/* Success after correction note */}
+                <div className="border-2 border-green-300 bg-green-50 px-4 py-3"
+                  style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
+                >
+                  <p className="font-body text-xs text-green-700">
+                    <strong>✅ After re-upload ({scenario.goodFile}):</strong> {scenario.okMsg}
+                  </p>
+                </div>
+                <WobblyButton variant="secondary" size="md" className="w-full" onClick={onClose}>
+                  Close Preview &rarr; Back to Tour
+                </WobblyButton>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  MAIN OVERLAY
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function DemoOverlay() {
-  const [started, setStarted]   = useState(false)
-  const [step, setStep]         = useState(0)
-  const [muted, setMuted]       = useState(false)
-  const audioRef                = useRef<HTMLAudioElement>(null)
+  const [started, setStarted]         = useState(false)
+  const [step, setStep]               = useState(0)
+  const [muted, setMuted]             = useState(false)
+  const [demoState, setDemoState]     = useState<DemoState>(DEFAULT_DEMO_STATE)
+  const [portalOpen, setPortalOpen]   = useState(false)
+  const audioRef                      = useRef<HTMLAudioElement>(null)
 
   const next    = useCallback(() => setStep(s => Math.min(s + 1, TOTAL_STEPS - 1)), [])
   const prev    = useCallback(() => setStep(s => Math.max(s - 1, 0)), [])
-  const restart = useCallback(() => { setStep(0); setStarted(false) }, [])
+  const restart = useCallback(() => { setStep(0); setStarted(false); setDemoState(DEFAULT_DEMO_STATE); setPortalOpen(false) }, [])
 
   // Fire demo_completed when user reaches the final success step
   useEffect(() => {
@@ -1342,11 +1637,15 @@ export default function DemoOverlay() {
           )}
           {started && step === 0 && <Step0Dashboard  key="s0" onNext={next} />}
           {started && step === 1 && <Step1SmartSetup key="s1" onNext={next} />}
-          {started && step === 2 && <Step2AiSpec     key="s2" onNext={next} />}
-          {started && step === 3 && <Step3MagicLink  key="s3" onNext={next} />}
-          {started && step === 4 && <Step4ClientView key="s4" onNext={next} />}
-          {started && step === 5 && <Step5AiAudit    key="s5" onNext={next} />}
-          {started && step === 6 && <Step6Success    key="s6" onRestart={restart} />}
+          {started && step === 2 && (
+            <Step2AiSpec key="s2" onNext={next} demoState={demoState} setDemoState={setDemoState} />
+          )}
+          {started && step === 3 && (
+            <Step3MagicLink key="s3" onNext={next} demoState={demoState} onOpenPortal={() => setPortalOpen(true)} />
+          )}
+          {started && step === 4 && <Step4ClientView key="s4" onNext={next} demoState={demoState} />}
+          {started && step === 5 && <Step5AiAudit    key="s5" onNext={next} demoState={demoState} />}
+          {started && step === 6 && <Step6Success    key="s6" onRestart={restart} demoState={demoState} />}
         </AnimatePresence>
       </div>
 
@@ -1373,6 +1672,13 @@ export default function DemoOverlay() {
           </button>
         </div>
       )}
+
+      {/* ── DEMO PORTAL MODAL ── */}
+      <AnimatePresence>
+        {portalOpen && (
+          <DemoPortalModal demoState={demoState} onClose={() => setPortalOpen(false)} />
+        )}
+      </AnimatePresence>
 
       {/* Background audio — muted until user clicks Start */}
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}

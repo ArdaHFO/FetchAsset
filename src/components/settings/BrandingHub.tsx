@@ -480,10 +480,12 @@ export default function BrandingHub({ initial, agencyName }: BrandingHubProps) {
           <span className="font-body text-xs text-ink/50 uppercase tracking-wider">Live Preview</span>
         </div>
         <div
-          className="relative border-2 border-ink/15 bg-muted/30 p-4"
+          className="relative border-2 border-ink/15 bg-muted/30 p-4 overflow-x-auto"
           style={{ borderRadius: '20px 5px 20px 5px / 5px 20px 5px 20px' }}
         >
-          <PortalPreview brand={brand} agencyName={agencyName} />
+          <div className="min-w-[340px]">
+            <PortalPreview brand={brand} agencyName={agencyName} />
+          </div>
           <p className="font-body text-xs text-ink/30 text-center mt-3">
             This is how your clients will see the portal
           </p>

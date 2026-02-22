@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, Check, ExternalLink, MoreVertical, Globe, Mail, Calendar, Info } from 'lucide-react'
+import { Copy, Check, ExternalLink, MoreVertical, Globe, Mail, Calendar, Info, MessageCircle, Pencil, X, Save, ToggleLeft, ToggleRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { WobblyCard, WobblyCardContent, WobblyButton } from '@/components/ui'
@@ -44,6 +44,41 @@ export function ProjectHeader({ project, magicUrl }: ProjectHeaderProps) {
   const [status, setStatus] = useState<ProjectStatus>(project.status)
   const [statusOpen, setStatusOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  // ── Contact Support state ──────────────────────────────────────
+  const [contactVisible, setContactVisible] = useState<boolean>(project.contact_visible ?? true)
+  const [contactMethod, setContactMethod] = useState<'email' | 'whatsapp' | ''>(project.contact_method ?? '')
+  const [contactValue, setContactValue] = useState<string>(project.contact_value ?? '')
+  const [contactEditing, setContactEditing] = useState(false)
+  const [contactSaving, setContactSaving] = useState(false)
+
+  async function toggleContactVisible() {
+    const next = !contactVisible
+    setContactVisible(next)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const supabase = createClient() as any
+    await supabase.from('projects').update({ contact_visible: next }).eq('id', project.id)
+    router.refresh()
+  }
+
+  async function saveContactInfo() {
+    setContactSaving(true)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const supabase = createClient() as any
+    await supabase.from('projects').update({
+      contact_method: contactMethod || null,
+      contact_value: contactValue.trim() || null,
+    }).eq('id', project.id)
+    setContactSaving(false)
+    setContactEditing(false)
+    router.refresh()
+  }
+
+  function cancelContactEdit() {
+    setContactMethod(project.contact_method ?? '')
+    setContactValue(project.contact_value ?? '')
+    setContactEditing(false)
+  }
 
   async function copyLink() {
     if (!magicUrl) return
@@ -213,6 +248,126 @@ export function ProjectHeader({ project, magicUrl }: ProjectHeaderProps) {
             </div>
           </div>
         )}
+
+        {/* ── Contact Support panel ─────────────────────────── */}
+        <div
+          className="flex flex-col gap-3 p-4 border-2 border-ink/10 bg-[#f0fbff]"
+          style={{ borderRadius: '20px 5px 20px 5px / 5px 20px 5px 20px' }}
+        >
+          {/* Header row */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <MessageCircle size={14} className="text-ink/50" />
+              <span className="font-body text-sm font-semibold text-ink">Client Support</span>
+              {contactMethod && contactValue ? (
+                <span
+                  className="font-body text-xs px-2 py-0.5 border"
+                  style={{
+                    borderRadius: '255px',
+                    background: contactVisible ? '#dcfce7' : '#f3f4f6',
+                    color: contactVisible ? '#16a34a' : '#6b7280',
+                    borderColor: contactVisible ? '#bbf7d0' : '#e5e7eb',
+                  }}
+                >
+                  {contactVisible ? '👁 Visible to client' : '🙈 Hidden from client'}
+                </span>
+              ) : (
+                <span className="font-body text-xs text-ink/35">Not configured</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {contactMethod && contactValue && (
+                <button
+                  type="button"
+                  onClick={toggleContactVisible}
+                  className="flex items-center gap-1.5 font-body text-xs text-ink/60 hover:text-ink transition-colors"
+                  title={contactVisible ? 'Hide from client' : 'Show to client'}
+                >
+                  {contactVisible
+                    ? <ToggleRight size={18} className="text-green-600" />
+                    : <ToggleLeft size={18} className="text-ink/30" />}
+                </button>
+              )}
+              {!contactEditing ? (
+                <button
+                  type="button"
+                  onClick={() => setContactEditing(true)}
+                  className="flex items-center gap-1 font-body text-xs px-2.5 py-1 border-2 border-ink/20 hover:border-ink text-ink/60 hover:text-ink transition-all bg-paper"
+                  style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px', boxShadow: '2px 2px 0 0 #2d2d2d' }}
+                >
+                  <Pencil size={11} /> Edit
+                </button>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={saveContactInfo}
+                    disabled={contactSaving}
+                    className="flex items-center gap-1 font-body text-xs px-2.5 py-1 border-2 border-ink bg-ink text-paper transition-all"
+                    style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px', boxShadow: '2px 2px 0 0 #2d2d2d' }}
+                  >
+                    <Save size={11} /> {contactSaving ? 'Saving…' : 'Save'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelContactEdit}
+                    className="flex items-center gap-1 font-body text-xs px-2 py-1 border-2 border-ink/20 text-ink/50 hover:text-ink transition-all"
+                    style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px' }}
+                  >
+                    <X size={11} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Edit form */}
+          {contactEditing && (
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2">
+                {(['', 'email', 'whatsapp'] as const).map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setContactMethod(val)}
+                    className={cn(
+                      'font-body text-xs px-3 py-1.5 border-2 transition-all',
+                      contactMethod === val
+                        ? 'bg-ink text-paper border-ink'
+                        : 'bg-paper text-ink border-ink/25 hover:border-ink'
+                    )}
+                    style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px', boxShadow: '2px 2px 0 0 #2d2d2d' }}
+                  >
+                    {val === '' ? 'None' : val === 'email' ? '✉️ Email' : '📱 WhatsApp'}
+                  </button>
+                ))}
+              </div>
+              {contactMethod !== '' && (
+                <input
+                  type={contactMethod === 'email' ? 'email' : 'tel'}
+                  value={contactValue}
+                  onChange={(e) => setContactValue(e.target.value)}
+                  placeholder={contactMethod === 'whatsapp' ? '+44 7700 900123' : 'you@studio.com'}
+                  className="w-full px-3 py-2 font-body text-sm text-ink bg-paper border-2 border-ink/60 outline-none focus:border-ink transition-all"
+                  style={{ borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px' }}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Display row (not editing) */}
+          {!contactEditing && contactMethod && contactValue && (
+            <div className="flex items-center gap-2 font-body text-sm text-ink/70">
+              <span>{contactMethod === 'whatsapp' ? '📱' : '✉️'}</span>
+              <span>{contactValue}</span>
+            </div>
+          )}
+          {!contactEditing && (!contactMethod || !contactValue) && (
+            <p className="font-body text-xs text-ink/40">
+              Click &ldquo;Edit&rdquo; to add a contact method — your client will see a &ldquo;Got a question?&rdquo; card in their portal.
+            </p>
+          )}
+        </div>
 
         <p className="font-body text-xs text-ink/35">
           Created {new Date(project.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}

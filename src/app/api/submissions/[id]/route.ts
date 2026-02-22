@@ -41,3 +41,38 @@ export async function GET(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const body = await req.json()
+    const { agency_note } = body as { agency_note?: string | null }
+
+    // Verify ownership via join
+    const { data: existing } = await (supabase as any)
+      .from('submissions')
+      .select('id, asset_requests(projects(owner_id))')
+      .eq('id', params.id)
+      .single()
+
+    if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    const ownerId = existing.asset_requests?.projects?.owner_id
+    if (ownerId && ownerId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    const { error } = await (supabase as any)
+      .from('submissions')
+      .update({ agency_note: agency_note?.trim() || null, updated_at: new Date().toISOString() })
+      .eq('id', params.id)
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

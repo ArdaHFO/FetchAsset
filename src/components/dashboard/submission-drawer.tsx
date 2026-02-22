@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { X, FileIcon, Link2, AlignLeft, Key, ListChecks, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { X, FileIcon, Link2, AlignLeft, Key, ListChecks, CheckCircle2, XCircle, Loader2, MessageSquare } from 'lucide-react'
 import { WobblyButton, WobblyCard } from '@/components/ui'
 import { AiAuditPanel } from './ai-audit-panel'
 import type { AssetRequest, Submission } from '@/lib/supabase/types'
@@ -39,6 +39,9 @@ export function SubmissionDrawer({ submission, request, onClose, onReviewComplet
   const [actionLoading, setActionLoading] = useState<'approve' | 'reject' | null>(null)
   const [rerunning, setRerunning] = useState(false)
   const [currentSubmission, setCurrentSubmission] = useState<Submission>(submission)
+  const [agencyNote, setAgencyNote] = useState(submission.agency_note ?? '')
+  const [noteSaving, setNoteSaving] = useState(false)
+  const [noteSaved, setNoteSaved] = useState(false)
 
   const auditResult = currentSubmission.ai_audit_result
     ? (currentSubmission.ai_audit_result as unknown as AuditResult)
@@ -54,8 +57,23 @@ export function SubmissionDrawer({ submission, request, onClose, onReviewComplet
     } catch {}
   }, [currentSubmission.id])
 
-  const handleRerun = async () => {
-    setRerunning(true)
+  const handleSaveNote = async () => {
+    setNoteSaving(true)
+    setNoteSaved(false)
+    try {
+      await fetch(`/api/submissions/${currentSubmission.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agency_note: agencyNote }),
+      })
+      setNoteSaved(true)
+      setTimeout(() => setNoteSaved(false), 2500)
+    } finally {
+      setNoteSaving(false)
+    }
+  }
+
+  const handleRerun = async () => {    setRerunning(true)
     try {
       await fetch('/api/ai/audit', {
         method: 'POST',
@@ -219,6 +237,46 @@ export function SubmissionDrawer({ submission, request, onClose, onReviewComplet
               </div>
             )}
           </WobblyCard>
+
+          {/* Agency note for client */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <MessageSquare size={13} className="text-ink/50" />
+              <p className="font-body text-xs text-ink/50 uppercase tracking-wide">Note for client</p>
+            </div>
+            <textarea
+              rows={3}
+              value={agencyNote}
+              onChange={(e) => { setAgencyNote(e.target.value); setNoteSaved(false) }}
+              placeholder="Leave a note that the client will see on their portal (e.g. feedback, next steps)…"
+              className="w-full font-body text-sm text-ink bg-muted/40 border border-ink/20 px-3 py-2 resize-none focus:outline-none focus:border-ink/50 transition-colors"
+              style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+            />
+            <div className="flex items-center gap-3">
+              <WobblyButton
+                variant="secondary"
+                size="sm"
+                onClick={handleSaveNote}
+                disabled={noteSaving}
+                className="flex items-center gap-1.5"
+              >
+                {noteSaving
+                  ? <><Loader2 size={12} className="animate-spin" /> Saving…</>
+                  : noteSaved
+                    ? <>✓ Saved</>
+                    : <>Save note</>
+                }
+              </WobblyButton>
+              {agencyNote && !noteSaving && (
+                <button
+                  className="font-body text-xs text-ink/40 hover:text-accent transition-colors"
+                  onClick={() => { setAgencyNote(''); setNoteSaved(false) }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
 
           {/* AI Audit panel */}
           <AiAuditPanel

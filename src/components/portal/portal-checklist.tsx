@@ -186,6 +186,9 @@ function RequestItem({
           {submitted && (
             <span className="font-body text-xs text-ink/45">✓ Submitted</span>
           )}
+          {submitted && existing?.agency_note && (
+            <span className="font-body text-xs text-blue/80 flex items-center gap-1">💬 Note from agency</span>
+          )}
         </div>
 
         {/* Type badge */}
@@ -355,6 +358,17 @@ function RequestItem({
             <p className="font-body text-xs text-ink/40 text-center">
               You can update your submission by submitting again.
             </p>
+          )}
+
+          {/* Agency note */}
+          {existing?.agency_note && (
+            <div
+              className="flex flex-col gap-1 px-4 py-3 border-2"
+              style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px', borderColor: accentColor + '40', background: accentColor + '08' }}
+            >
+              <p className="font-body text-xs font-semibold" style={{ color: accentColor }}>💬 Note from your agency</p>
+              <p className="font-body text-sm text-ink/80">{existing.agency_note}</p>
+            </div>
           )}
         </div>
       )}

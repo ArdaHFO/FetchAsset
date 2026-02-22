@@ -144,6 +144,8 @@ export interface Submission {
   ai_audit_status: AiAuditStatus
   // Client note
   client_note: string | null
+  // Agency note (shown to client in portal)
+  agency_note: string | null
   // Version control (multiple uploads for the same request)
   version: number                   // 1-based; latest upload increments this
   // Computed

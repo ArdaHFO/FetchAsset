@@ -7,6 +7,8 @@ import type { Metadata } from 'next'
 import {
   ArrowRight,
   Zap,
+  FileCheck,
+  Upload,
   Users,
   CheckCircle,
   AlertCircle,
@@ -34,7 +36,33 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-paper">
+    <main className="min-h-screen bg-paper relative overflow-x-hidden">
+
+      {/* ── Background floating deco illustrations ──────────────────────────
+           Low opacity, pointer-events-none, z-0 — they breathe behind content
+      ──────────────────────────────────────────────────────────────────────── */}
+      <div aria-hidden="true" className="pointer-events-none select-none">
+        <div className="absolute top-10 right-[5%] opacity-[0.07] animate-float hidden md:block"
+          style={{ transform: 'rotate(12deg)' }}>
+          <Image src="/file1.png" alt="" width={180} height={180} />
+        </div>
+        <div className="absolute top-32 left-[2%] opacity-[0.06] animate-float-slow hidden md:block"
+          style={{ transform: 'rotate(-9deg)' }}>
+          <Image src="/paperclip1.png" alt="" width={140} height={140} />
+        </div>
+        <div className="absolute top-[420px] right-[1%] opacity-[0.05] animate-float hidden lg:block"
+          style={{ transform: 'rotate(6deg)' }}>
+          <Image src="/file2.png" alt="" width={120} height={120} />
+        </div>
+        <div className="absolute top-[560px] left-[6%] opacity-[0.06] animate-float-slow hidden lg:block"
+          style={{ transform: 'rotate(-14deg)' }}>
+          <Image src="/file3.png" alt="" width={100} height={100} />
+        </div>
+        <div className="absolute top-[200px] right-[12%] opacity-[0.05] animate-float hidden xl:block"
+          style={{ transform: 'rotate(20deg)' }}>
+          <Image src="/paperclip2.png" alt="" width={110} height={110} />
+        </div>
+      </div>
 
       {/* NAVBAR */}
       <nav className="sticky top-0 z-50 bg-paper/90 backdrop-blur-sm border-b-[3px] border-dashed border-muted">
@@ -83,20 +111,6 @@ export default function Home() {
 
           {/* Right: Hero card mock-up */}
           <div className="relative flex items-center justify-center py-10">
-            {/* Floating AI folder — overlaps the card for depth */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none select-none absolute -bottom-6 -left-8 z-20 hidden md:block animate-float"
-              style={{ filter: 'drop-shadow(6px 6px 0px #2d2d2d)' }}
-            >
-              <Image
-                src="/file1.png"
-                alt="AI-powered folder"
-                width={130}
-                height={130}
-                style={{ transform: 'rotate(-8deg)', mixBlendMode: 'multiply', objectFit: 'contain' }}
-              />
-            </div>
             <div
               className="hidden md:block absolute -top-4 -right-4 w-20 h-20 border-[3px] border-dashed border-muted animate-bounce pointer-events-none"
               style={{ borderRadius: '50% 40% 60% 45% / 50% 55% 45% 50%' }}
@@ -202,19 +216,19 @@ export default function Home() {
               flavor: 'default' as const, decoration: 'tape' as const, rotate: '-1' as const,
             },
             {
-              illustration: '/file2.png', illustrationTilt: -4,
+              icon: <Image src="/meta-llama.png" alt="AI" width={28} height={28} className="invert" />,
               title: 'Llama 3.3 AI Audit',
               desc: 'AI reads every uploaded document and flags issues. Expired tax IDs, missing brand colors, wrong formats.',
               flavor: 'postit' as const, decoration: 'tack' as const, rotate: '1' as const,
             },
             {
-              illustration: '/paperclip2.png', illustrationTilt: 5,
+              icon: <FileCheck className="w-7 h-7" strokeWidth={2.5} />,
               title: 'Smart Checklists',
               desc: 'Type your project type, AI generates the exact 10-point asset checklist. No more manual lists.',
               flavor: 'default' as const, decoration: 'tape' as const, rotate: '-0.5' as const,
             },
             {
-              illustration: '/paperclip1.png', illustrationTilt: -3,
+              icon: <Upload className="w-7 h-7" strokeWidth={2.5} />,
               title: 'Drag & Drop Upload',
               desc: 'Clients drop files, FetchAsset auto-validates size, format, and resolution — client side, instant.',
               flavor: 'muted' as const, decoration: 'none' as const, rotate: 'none' as const,
@@ -232,9 +246,7 @@ export default function Home() {
               flavor: 'postit' as const, decoration: 'tape' as const, rotate: '1' as const,
             },
           ] as Array<{
-            icon?: React.ReactNode
-            illustration?: string
-            illustrationTilt?: number
+            icon: React.ReactNode
             title: string
             desc: string
             flavor: 'default' | 'postit' | 'muted'
@@ -249,28 +261,12 @@ export default function Home() {
               hoverable
               className="mt-4"
             >
-              {feature.illustration ? (
-                <div className="mb-4 animate-float" style={{ filter: 'drop-shadow(5px 5px 0px #2d2d2d)' }}>
-                  <Image
-                    src={feature.illustration}
-                    alt={feature.title}
-                    width={100}
-                    height={100}
-                    style={{
-                      transform: `rotate(${feature.illustrationTilt ?? 0}deg)`,
-                      mixBlendMode: 'multiply',
-                      objectFit: 'contain',
-                    }}
-                  />
-                </div>
-              ) : (
-                <div
-                  className="w-12 h-12 bg-ink text-paper flex items-center justify-center mb-4"
-                  style={{ borderRadius: '50% 45% 55% 48% / 50% 52% 48% 50%' }}
-                >
-                  {feature.icon}
-                </div>
-              )}
+              <div
+                className="w-12 h-12 bg-ink text-paper flex items-center justify-center mb-4"
+                style={{ borderRadius: '50% 45% 55% 48% / 50% 52% 48% 50%' }}
+              >
+                {feature.icon}
+              </div>
               <h3 className="font-heading text-xl text-ink mb-2">{feature.title}</h3>
               <p className="font-body text-ink/70 text-base">{feature.desc}</p>
             </WobblyCard>
@@ -461,22 +457,8 @@ export default function Home() {
       </section>
 
       {/* FINAL CTA */}
-      <section className="section-container border-t-[3px] border-dashed border-muted py-24 overflow-hidden">
+      <section className="section-container border-t-[3px] border-dashed border-muted py-24">
         <div className="relative max-w-2xl mx-auto text-center">
-          {/* Mascot running toward the CTA */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none select-none absolute -left-4 md:-left-20 bottom-0 hidden md:block animate-float-slow"
-            style={{ filter: 'drop-shadow(4px 4px 0px #2d2d2d)' }}
-          >
-            <Image
-              src="/paperclip1.png"
-              alt="FetchAsset mascot running"
-              width={120}
-              height={120}
-              style={{ transform: 'rotate(-10deg)', mixBlendMode: 'multiply', objectFit: 'contain' }}
-            />
-          </div>
           <span className="tag-label">Ready?</span>
           <h2 className="section-title mt-4">
             Start fetching assets<br />in under 5 minutes

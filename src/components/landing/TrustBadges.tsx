@@ -1,6 +1,7 @@
 /**
  * TrustBadges — Security & Trust Infrastructure section.
- * Static, no interactivity. 4-column grid with hard-shadow cards.
+ * Two-column layout: badges on the left, Secure Cloud video on the right.
+ * Video: autoplay / muted / loop / playsInline / preload="none" (lazy).
  */
 
 const BADGES = [
@@ -37,34 +38,73 @@ export default function TrustBadges() {
           boxShadow: '5px 5px 0 0 rgba(45,45,45,0.12)',
         }}
       >
-        <div className="text-center mb-10">
-          <span className="tag-label">Security-first</span>
-          <h2 className="section-title mt-4">Your data is locked down tight</h2>
-          <p className="font-body text-base text-ink/55 max-w-md mx-auto mt-3">
-            Enterprise-grade protection built in from day one — no add-ons required.
-          </p>
-        </div>
+        {/* ── Two-column layout: text+badges left, video right ── */}
+        <div className="flex flex-col-reverse lg:flex-row items-center gap-10 lg:gap-14">
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {BADGES.map((b, i) => (
+          {/* ── LEFT: heading + 2×2 badge grid ── */}
+          <div className="flex-1 min-w-0">
+            <div className="mb-8 text-center lg:text-left">
+              <span className="tag-label">Security-first</span>
+              <h2 className="section-title mt-4">Your data is locked down tight</h2>
+              <p className="font-body text-base text-ink/55 max-w-md mx-auto lg:mx-0 mt-3">
+                Enterprise-grade protection built in from day one — no add-ons required.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-5">
+              {BADGES.map((b, i) => (
+                <div
+                  key={b.heading}
+                  className="flex flex-col gap-3 bg-paper border-2 border-ink/25 px-5 py-5"
+                  style={{
+                    borderRadius: i % 2 === 0
+                      ? '220px 30px 240px 20px / 25px 230px 20px 215px'
+                      : '180px 45px 200px 35px / 40px 190px 30px 170px',
+                    boxShadow: '4px 4px 0 0 #2d2d2d',
+                    transform: i % 2 === 0 ? 'rotate(-0.4deg)' : 'rotate(0.4deg)',
+                  }}
+                >
+                  <span className="text-3xl leading-none">{b.icon}</span>
+                  <div>
+                    <p className="font-heading text-base text-ink leading-tight">{b.heading}</p>
+                    <p className="font-body text-xs text-ink/55 mt-1.5 leading-relaxed">{b.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── RIGHT: Secure Cloud animation video ── */}
+          <div className="w-full max-w-[340px] mx-auto lg:mx-0 lg:w-[380px] lg:flex-shrink-0">
+            {/*
+              Wobbly video frame:
+              - 4px solid #2d2d2d border
+              - Wobbly border-radius (lg preset)
+              - 6px hard offset shadow, no blur
+              - overflow:hidden clips the video to the wobbly shape
+            */}
             <div
-              key={b.heading}
-              className="flex flex-col gap-3 bg-paper border-2 border-ink/25 px-5 py-5"
+              className="overflow-hidden border-[4px] border-[#2d2d2d]"
               style={{
-                borderRadius: i % 2 === 0
-                  ? '220px 30px 240px 20px / 25px 230px 20px 215px'
-                  : '180px 45px 200px 35px / 40px 190px 30px 170px',
-                boxShadow: '4px 4px 0 0 #2d2d2d',
-                transform: i % 2 === 0 ? 'rotate(-0.4deg)' : 'rotate(0.4deg)',
+                borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px',
+                boxShadow: '6px 6px 0 0 #2d2d2d',
+                transform: 'rotate(-1deg)',
               }}
             >
-              <span className="text-3xl leading-none">{b.icon}</span>
-              <div>
-                <p className="font-heading text-base text-ink leading-tight">{b.heading}</p>
-                <p className="font-body text-xs text-ink/55 mt-1.5 leading-relaxed">{b.sub}</p>
-              </div>
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              <video
+                src="/Main-Page.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="none"
+                className="w-full h-auto block"
+                aria-hidden="true"
+              />
             </div>
-          ))}
+          </div>
+
         </div>
       </div>
     </section>

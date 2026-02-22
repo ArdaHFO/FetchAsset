@@ -20,6 +20,7 @@ const STATUS_LABELS: Record<string, string> = {
 function PlanBadge({ plan }: { plan: PlanTier }) {
   const colors: Record<PlanTier, string> = {
     free:   'bg-muted text-ink/70',
+    solo:   'bg-postit text-ink',
     pro:    'bg-blue/10 text-blue',
     agency: 'bg-ink text-paper',
   }

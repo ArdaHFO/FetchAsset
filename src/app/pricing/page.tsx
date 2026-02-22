@@ -7,20 +7,24 @@ import type { PlanTier } from '@/lib/supabase/types'
 
 export const metadata: Metadata = {
   title: 'Pricing',
-  description: 'Simple, transparent pricing for agencies of every size. Start free, upgrade when you grow.',
+  description: 'Simple, transparent pricing for freelancers and agencies. Start free, upgrade when you grow.',
   alternates: { canonical: '/pricing' },
   openGraph: {
-    title: 'FetchAsset Pricing — Simple Plans for Agencies',
-    description: 'Start free. No credit card required. Upgrade to Pro or Agency when you need more portals and AI audits.',
+    title: 'FetchAsset Pricing — Solo, Pro & Agency Plans',
+    description: 'From $19/mo for freelancers to $129/mo for high-volume agencies. All plans include AI-powered file audits and magic-link client portals.',
     url: '/pricing',
   },
 }
 
-const PLAN_ORDER: PlanTier[] = ['free', 'pro', 'agency']
+const PLAN_ORDER: PlanTier[] = ['free', 'solo', 'pro', 'agency']
 
 const CARD_STYLES: Record<PlanTier, { radius: string; shadow: string; badge?: string }> = {
   free: {
     radius: '220px 30px 240px 20px / 25px 230px 20px 215px',
+    shadow: '4px 4px 0 0 #2d2d2d',
+  },
+  solo: {
+    radius: '245px 18px 200px 20px / 22px 210px 14px 240px',
     shadow: '4px 4px 0 0 #2d2d2d',
   },
   pro: {

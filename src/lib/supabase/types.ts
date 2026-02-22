@@ -13,7 +13,7 @@ export type Json =
   | Json[]
 
 // ── Plan tiers ────────────────────────────────────────────────────────
-export type PlanTier = 'free' | 'pro' | 'agency'
+export type PlanTier = 'free' | 'solo' | 'pro' | 'agency'
 
 // ── Project statuses ──────────────────────────────────────────────────
 export type ProjectStatus = 'draft' | 'active' | 'completed' | 'archived'

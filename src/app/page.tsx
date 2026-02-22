@@ -101,6 +101,11 @@ export default function Home() {
                   <ArrowRight strokeWidth={3} className="w-5 h-5" />
                 </WobblyButton>
               </Link>
+              <Link href="/demo">
+                <WobblyButton variant="secondary" size="lg" className="gap-2">
+                  ▶ Try Demo — No signup
+                </WobblyButton>
+              </Link>
             </div>
             <p className="font-body text-sm text-ink/50">
               No credit card &nbsp;&nbsp; 14-day trial &nbsp;&nbsp; Cancel anytime

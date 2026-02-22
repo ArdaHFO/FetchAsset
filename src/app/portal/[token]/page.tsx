@@ -185,53 +185,6 @@ export default async function PortalPage({ params }: PageProps) {
           )}
         </div>
 
-        {/* Progress bar */}
-        {total > 0 && (
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-ink/60" style={{ fontFamily: fontBody }}>
-                {submitted} of {total} asset{total !== 1 ? 's' : ''} submitted
-              </span>
-              <span className="text-sm font-bold text-ink" style={{ fontFamily: fontBody }}>{pct}%</span>
-            </div>
-            <div
-              className="h-4 w-full bg-muted overflow-hidden"
-              style={{ borderRadius: '12px 2px 12px 2px / 2px 12px 2px 12px', boxShadow: '2px 2px 0px #2d2d2d' }}
-            >
-              <div
-                className="h-full transition-all duration-700 ease-in-out relative"
-                style={{
-                  width: `${pct}%`,
-                  background: isDone ? '#22c55e' : brandColor,
-                  borderRadius: '12px 2px 12px 2px / 2px 12px 2px 12px',
-                }}
-              >
-                <div
-                  className="absolute inset-0 opacity-20"
-                  style={{
-                    backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.5) 4px, rgba(255,255,255,0.5) 5px)',
-                  }}
-                />
-              </div>
-            </div>
-            {pct > 0 && (
-              <p
-                className="text-sm text-center pt-0.5"
-                style={{
-                  fontFamily: fontBody,
-                  color: isDone ? '#16a34a' : pct >= 60 ? '#b45309' : '#6b7280',
-                }}
-              >
-                {isDone
-                  ? "🎉 All done! You're amazing — thank you!"
-                  : pct >= 60
-                  ? `${pct}% — Almost there! Just a little more 💪`
-                  : `${pct}% — Great start! Keep going ✨`}
-              </p>
-            )}
-          </div>
-        )}
-
         {/* Empty state */}
         {total === 0 && (
           <div

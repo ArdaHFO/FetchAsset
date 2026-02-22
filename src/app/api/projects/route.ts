@@ -53,6 +53,9 @@ export async function POST(req: NextRequest) {
     if (!body.client_name?.trim()) {
       return NextResponse.json({ error: 'Client name is required.' }, { status: 400 })
     }
+    if (!body.client_email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.client_email)) {
+      return NextResponse.json({ error: 'A valid client email is required.' }, { status: 400 })
+    }
 
     // Enforce requests-per-project limit
     const { data: planRow } = await createAdminClient().from('profiles').select('plan').eq('id', user.id).single() as any

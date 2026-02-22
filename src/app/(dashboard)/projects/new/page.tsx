@@ -321,7 +321,7 @@ function StepBasics({
       {[
         { key: 'title'        as const, label: 'Project name *', placeholder: 'Acme Rebrand 2026', type: 'text' },
         { key: 'client_name'  as const, label: 'Client name *',  placeholder: 'Acme Corp',          type: 'text' },
-        { key: 'client_email' as const, label: 'Client email',   placeholder: 'hello@acme.com',     type: 'email' },
+        { key: 'client_email' as const, label: 'Client email *', placeholder: 'hello@acme.com',     type: 'email' },
       ].map(({ key, label, placeholder, type }) => (
         <div key={key} className="flex flex-col gap-1">
           <label className="font-body text-sm text-ink/70" htmlFor={key}>{label}</label>
@@ -1004,7 +1004,10 @@ export default function NewProjectPage() {
   }
 
   function canAdvance() {
-    if (step === 1) return form.title.trim().length > 0 && form.client_name.trim().length > 0
+    if (step === 1) {
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.client_email.trim())
+      return form.title.trim().length > 0 && form.client_name.trim().length > 0 && emailOk
+    }
     return true
   }
 

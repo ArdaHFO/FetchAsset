@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { WobblyButton } from '@/components/ui'
 import { StatCard } from '@/components/dashboard/stat-card'
 import { ProjectCard } from '@/components/dashboard/project-card'
+import { UsageMeter } from '@/components/dashboard/UsageMeter'
+import { getUsageStats } from '@/lib/stripe/limits'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,6 +48,9 @@ export default async function DashboardPage() {
   const profileData = profileResult.data as { full_name: string | null } | null
   const firstName = profileData?.full_name?.split(' ')[0] ?? user!.email?.split('@')[0] ?? 'there'
 
+  // Fetch usage stats
+  const usageStats = await getUsageStats(user!.id)
+
   return (
     <div className="flex flex-col gap-8 max-w-6xl">
       {/* Page header */}
@@ -73,6 +78,9 @@ export default async function DashboardPage() {
         <StatCard label="Archived"       value={stats.archived}  icon={AlertCircle}  rotate="-0.5" />
         <StatCard label="Completed"      value={stats.completed} icon={CheckCircle}  rotate="none" />
       </div>
+
+      {/* Usage meter */}
+      <UsageMeter stats={usageStats} />
 
       {/* Recent projects */}
       <section>

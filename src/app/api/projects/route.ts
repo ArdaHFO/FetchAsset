@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { assertCanCreateProject, PlanLimitError } from '@/lib/stripe/limits'
+import { PLANS } from '@/lib/stripe/plans'
 import type { RequestType } from '@/lib/supabase/types'
 
 interface AssetRequestInput {
@@ -48,6 +49,18 @@ export async function POST(req: NextRequest) {
 
     if (!body.title?.trim() || !body.client_name?.trim()) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
+    }
+
+    // Enforce requests-per-project limit
+    const { data: planRow } = await createAdminClient().from('profiles').select('plan').eq('id', user.id).single() as any
+    const userPlan = (planRow?.plan ?? 'free') as import('@/lib/supabase/types').PlanTier
+    const reqLimit = PLANS[userPlan].requestsPerProject
+    const validAssetCount = (body.assets ?? []).filter((a) => a.title?.trim()).length
+    if (reqLimit !== -1 && validAssetCount > reqLimit) {
+      return NextResponse.json({
+        error: `Your ${PLANS[userPlan].name} plan allows up to ${reqLimit} request${reqLimit !== 1 ? 's' : ''} per project. Upgrade to add more.`,
+        code: 'request_limit',
+      }, { status: 403 })
     }
 
     const admin = createAdminClient()

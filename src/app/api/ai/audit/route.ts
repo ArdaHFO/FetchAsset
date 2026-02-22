@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { assertCanAudit, PlanLimitError } from '@/lib/stripe/limits'
 import { auditSubmission } from '@/lib/ai/audit'
 import type { AssetRequest, Submission } from '@/lib/supabase/types'
 
@@ -40,6 +41,23 @@ export async function POST(request: NextRequest) {
     }
 
     const submission = subRow as Submission
+
+    // Enforce audit limit for project owner
+    const { data: proj } = await (admin as any)
+      .from('projects')
+      .select('owner_id')
+      .eq('id', submission.project_id)
+      .single()
+    if (proj?.owner_id) {
+      try {
+        await assertCanAudit(proj.owner_id)
+      } catch (limitErr) {
+        if (limitErr instanceof PlanLimitError) {
+          await (admin as any).from('submissions').update({ ai_audit_status: 'error' }).eq('id', submissionId)
+          return NextResponse.json({ error: limitErr.message, code: limitErr.code }, { status: 403 })
+        }
+      }
+    }
 
     // Fetch asset request
     const { data: reqRow } = await (admin as any)

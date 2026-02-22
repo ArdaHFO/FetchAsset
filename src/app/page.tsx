@@ -206,7 +206,6 @@ export default function Home() {
               <p className="font-body text-xs uppercase tracking-widest text-ink/35 mb-3">Product</p>
               <div className="flex flex-col gap-2">
                 <a href="/#how" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">How It Works</a>
-                <a href="/#how" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">How it works</a>
                 <Link href="/pricing" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">Pricing</Link>
                 <Link href="/demo" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">Live Demo</Link>
               </div>
@@ -218,6 +217,7 @@ export default function Home() {
                 <Link href="/privacy-policy" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">Privacy Policy</Link>
                 <Link href="/terms-of-service" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">Terms of Service</Link>
                 <Link href="/cookie-policy" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">Cookie Policy</Link>
+                <a href="mailto:hfoai@proton.me" className="font-body text-sm text-ink/50 hover:text-ink transition-colors">Contact</a>
               </div>
             </div>
             {/* Account */}
@@ -234,6 +234,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6">
             <p className="font-body text-xs text-ink/35">&copy; 2026 FetchAsset, Inc. All rights reserved.</p>
             <div className="flex items-center gap-4">
+              <a href="mailto:hfoai@proton.me" className="font-body text-xs text-ink/50 hover:text-ink transition-colors">hfoai@proton.me</a>
               <Link href="/privacy-policy" className="font-body text-xs text-ink/35 hover:text-ink transition-colors">Privacy</Link>
               <Link href="/terms-of-service" className="font-body text-xs text-ink/35 hover:text-ink transition-colors">Terms</Link>
               <Link href="/cookie-policy" className="font-body text-xs text-ink/35 hover:text-ink transition-colors">Cookies</Link>

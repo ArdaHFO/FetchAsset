@@ -76,12 +76,12 @@ const nextConfig = {
   async redirects() {
     return [
       // Redirect www → apex (update host when you deploy)
-      // {
-      //   source: '/(.*)',
-      //   has: [{ type: 'host', value: 'www.fetchasset.app' }],
-      //   destination: 'https://fetchasset.app/:path*',
-      //   permanent: true,
-      // },
+      {
+        source: '/(.*)',
+        has: [{ type: 'host', value: 'www.fetchasset.com' }],
+        destination: 'https://fetchasset.com/:path*',
+        permanent: true,
+      },
       // Legacy / alternative paths → canonical
       {
         source: '/home',

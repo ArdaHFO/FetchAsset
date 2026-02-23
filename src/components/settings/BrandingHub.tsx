@@ -68,6 +68,35 @@ function getWobblyRadius(intensity: number): string {
   return `${a}px ${b}px ${c}px ${d}px / ${e}px ${f}px ${b}px ${a}px`
 }
 
+// ── Locked feature box ─────────────────────────────────────
+
+function LockedBox({ title, hint }: { title: string; hint: string }) {
+  return (
+    <a
+      href="/pricing"
+      className="group flex items-center gap-4 p-4 border-2 border-dashed border-ink/20 bg-muted/20 hover:bg-muted/40 hover:border-ink/35 transition-all cursor-pointer"
+      style={{ borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px' }}
+    >
+      <div
+        className="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-muted border-2 border-ink/15 group-hover:border-ink/30 transition-colors"
+        style={{ borderRadius: '50%' }}
+      >
+        <Lock size={15} className="text-ink/40" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-body text-sm font-bold text-ink/50">{title}</p>
+        <p className="font-body text-xs text-ink/35 mt-0.5">{hint}</p>
+      </div>
+      <span
+        className="flex-shrink-0 font-body text-xs font-bold text-white px-2.5 py-1 bg-ink/60 group-hover:bg-ink transition-colors"
+        style={{ borderRadius: '20px 5px 20px 5px / 5px 20px 5px 20px' }}
+      >
+        Upgrade →
+      </span>
+    </a>
+  )
+}
+
 // ── Wobble radius helper (scales with intensity) ──────────────────
 
 function PortalPreview({ brand, agencyName }: { brand: BrandingValues; agencyName: string }) {
@@ -308,6 +337,17 @@ export default function BrandingHub({ initial, agencyName, plan }: BrandingHubPr
           <p className="font-body text-sm text-ink/55 mt-1">
             Customise how your clients experience the portal. Changes appear in the live preview →
           </p>
+          {plan === 'free' && (
+            <div
+              className="mt-3 flex items-center gap-2.5 px-4 py-2.5 bg-postit border-2 border-ink/15"
+              style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px', boxShadow: '3px 3px 0 0 #2d2d2d' }}
+            >
+              <span className="text-base">✨</span>
+              <p className="font-body text-xs text-ink/70">
+                <strong>Free plan</strong> — colour, message, font &amp; wobble are yours. Upgrade to unlock logo, backgrounds, tagline &amp; white-label.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Logo upload */}
@@ -315,6 +355,12 @@ export default function BrandingHub({ initial, agencyName, plan }: BrandingHubPr
           <label className="font-body text-xs text-ink/50 uppercase tracking-wider flex items-center gap-1.5">
             <UploadCloud size={13} /> Agency Logo
           </label>
+          {plan === 'free' ? (
+            <LockedBox
+              title="Custom Logo"
+              hint="Show your agency logo in the portal header. Available on Solo plan and above."
+            />
+          ) : (
           <div
             className={cn(
               'relative flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed cursor-pointer transition-colors',
@@ -359,8 +405,9 @@ export default function BrandingHub({ initial, agencyName, plan }: BrandingHubPr
               </>
             )}
           </div>
+          )}
           <p className="font-body text-xs text-ink/35">
-            Shown in the portal header. Defaults to &quot;FetchAsset&quot; if not set.
+            Shown in the portal header. Defaults to your agency name if not set.
           </p>
         </div>
 
@@ -503,6 +550,12 @@ export default function BrandingHub({ initial, agencyName, plan }: BrandingHubPr
           <label className="font-body text-xs text-ink/50 uppercase tracking-wider flex items-center gap-1.5">
             <Layers size={13} /> Portal Background
           </label>
+          {plan === 'free' ? (
+            <LockedBox
+              title="Custom Portal Background"
+              hint="Choose any background color for your client portal. Available on Solo plan and above."
+            />
+          ) : (
           <div className="flex items-center gap-2 flex-wrap">
             {BG_PRESETS.map((p) => (
               <button
@@ -537,6 +590,7 @@ export default function BrandingHub({ initial, agencyName, plan }: BrandingHubPr
               </span>
             </div>
           </div>
+          )}
           <p className="font-body text-xs text-ink/35">The full-page background color your clients see.</p>
         </div>
 
@@ -545,6 +599,12 @@ export default function BrandingHub({ initial, agencyName, plan }: BrandingHubPr
           <label className="font-body text-xs text-ink/50 uppercase tracking-wider flex items-center gap-1.5">
             <Palette size={13} /> Welcome Card Color
           </label>
+          {plan === 'free' ? (
+            <LockedBox
+              title="Custom Card Color"
+              hint="Pick the color of the sticky-note greeting card. Available on Solo plan and above."
+            />
+          ) : (
           <div className="flex items-center gap-2 flex-wrap">
             {CARD_PRESETS.map((p) => (
               <button
@@ -579,6 +639,7 @@ export default function BrandingHub({ initial, agencyName, plan }: BrandingHubPr
               </span>
             </div>
           </div>
+          )}
           <p className="font-body text-xs text-ink/35">The sticky-note / greeting card on the portal.</p>
         </div>
 
@@ -587,6 +648,12 @@ export default function BrandingHub({ initial, agencyName, plan }: BrandingHubPr
           <label className="font-body text-xs text-ink/50 uppercase tracking-wider flex items-center gap-1.5">
             <AlignLeft size={13} /> Agency Tagline
           </label>
+          {plan === 'free' ? (
+            <LockedBox
+              title="Agency Tagline"
+              hint="Add a short tagline under your agency name in the portal header. Available on Solo plan and above."
+            />
+          ) : (
           <input
             type="text"
             value={brand.agency_tagline}
@@ -596,10 +663,13 @@ export default function BrandingHub({ initial, agencyName, plan }: BrandingHubPr
             className="w-full px-4 py-2.5 font-body text-sm text-ink bg-paper border-2 border-ink/40 outline-none focus:border-ink transition-all"
             style={{ borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px' }}
           />
+          )}
+          {plan !== 'free' && (
           <div className="flex justify-between">
             <p className="font-body text-xs text-ink/35">Appears under your agency name in the portal header, in your brand color.</p>
             <span className="font-body text-xs text-ink/30">{brand.agency_tagline.length}/60</span>
           </div>
+          )}
         </div>
 
         {/* Hide branding */}

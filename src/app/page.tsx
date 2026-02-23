@@ -6,7 +6,6 @@
 
 import React from 'react'
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
 import {
   ArrowRight,
   Check,
@@ -47,10 +46,19 @@ const GRAPH_BG: React.CSSProperties = {
 }
 
 export default async function Home() {
-  // Authenticated users go straight to the dashboard
+  // Fetch user — but do NOT redirect; let logged-in users browse the landing page too
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (user) redirect('/dashboard')
+
+  let userName: string | null = null
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single()
+    userName = (profile as any)?.full_name || user.email || null
+  }
 
   return (
     <main className="min-h-screen bg-paper relative overflow-x-hidden" style={GRAPH_BG}>
@@ -81,7 +89,7 @@ export default async function Home() {
       </div>
 
       {/* NAVBAR */}
-      <LandingNav />
+      <LandingNav userName={userName} />
 
       {/* â”€â”€ HERO + STATS (client component â€” handles Demo overlay) â”€â”€ */}
       <HeroSection />

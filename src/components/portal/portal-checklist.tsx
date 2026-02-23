@@ -619,6 +619,13 @@ export function PortalChecklist({
   const pct = total > 0 ? Math.round((submitted / total) * 100) : 0
   const isDone = submitted === total && total > 0
 
+  // Broadcast progress to header pill via custom DOM event
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('portal-progress', {
+      detail: { total, submitted, pct, isDone },
+    }))
+  }, [total, submitted, pct, isDone])
+
   if (!nameSet) {
     return (
       <WobblyCard flavor="default" shadow="DEFAULT" radius="md" rotate="-0.5">

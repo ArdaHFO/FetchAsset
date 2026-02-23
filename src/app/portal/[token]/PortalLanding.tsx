@@ -35,12 +35,14 @@ export default function PortalLanding({
   const router = useRouter()
   const [name, setName] = useState(clientName)
   const [loading, setLoading] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
 
   // On mount: if we previously saved a name for this portal, skip landing
   useEffect(() => {
     try {
       const saved = localStorage.getItem(localKey(token))
       if (saved) {
+        setRedirecting(true)
         router.replace(`/portal/${token}?name=${encodeURIComponent(saved)}`)
       }
     } catch {
@@ -48,6 +50,52 @@ export default function PortalLanding({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
+
+  // Show loading screen while auto-redirecting
+  if (redirecting) {
+    return (
+      <div className="min-h-screen flex flex-col" style={{ fontFamily: fontBody }}>
+        {/* Top bar */}
+        <header
+          className="sticky top-0 z-30 flex items-center justify-between px-5 py-3 border-b-2 border-ink/10"
+          style={{ background: 'rgba(253,251,247,0.96)', backdropFilter: 'blur(8px)' }}
+        >
+          <div>
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt={agencyName} className="h-9 w-auto object-contain max-w-[160px]" />
+            ) : (
+              <span style={{ fontFamily: fontHeading, fontSize: '22px', fontWeight: 700, color: '#2d2d2d' }}>
+                {agencyName === 'FetchAsset'
+                  ? <><span>Fetch</span><span style={{ color: brandColor }}>Asset</span></>
+                  : agencyName}
+              </span>
+            )}
+          </div>
+          <span className="text-xs text-ink/35">🔒 Secure</span>
+        </header>
+
+        <main className="flex-1 flex items-center justify-center px-4 py-12">
+          <div className="flex flex-col items-center gap-5">
+            <div className="relative">
+              <div
+                className="w-16 h-16 border-4 border-ink/10 border-t-4 rounded-full animate-spin"
+                style={{ borderTopColor: brandColor }}
+              />
+            </div>
+            <div className="text-center">
+              <p className="text-lg text-ink font-medium" style={{ fontFamily: fontHeading }}>
+                Loading your portal…
+              </p>
+              <p className="text-sm text-ink/50 mt-1" style={{ fontFamily: fontBody }}>
+                Fetching your files and progress
+              </p>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   function handleAccess() {
     if (!name.trim()) return

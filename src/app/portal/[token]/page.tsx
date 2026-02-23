@@ -2,6 +2,7 @@ import React from 'react'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { PortalChecklist } from '@/components/portal/portal-checklist'
+import { PortalProgressPill } from '@/components/portal/portal-progress-pill'
 import ContactCard from '@/components/portal/ContactCard'
 import PortalLanding from './PortalLanding'
 import type { Project, AssetRequest, Submission, Profile, PlanTier } from '@/lib/supabase/types'
@@ -160,18 +161,12 @@ export default async function PortalPage({ params, searchParams }: PageProps) {
 
         {/* Progress pill */}
         {total > 0 && (
-          <div
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 border-2 border-ink/15"
-            style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
-          >
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{ background: submitted === total && total > 0 ? '#22c55e' : brandColor }}
-            />
-            <span className="text-xs font-bold text-ink" style={{ fontFamily: fontBody }}>
-              {submitted === total && total > 0 ? 'Complete 🎉' : `${pct}% · ${total - submitted} to go`}
-            </span>
-          </div>
+          <PortalProgressPill
+            initialTotal={total}
+            initialSubmitted={submitted}
+            brandColor={brandColor}
+            fontBody={fontBody}
+          />
         )}
 
         <span className="text-xs text-ink/35" style={{ fontFamily: fontBody }}>🔒 Secure</span>

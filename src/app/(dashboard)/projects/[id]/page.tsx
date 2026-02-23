@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { ProjectHeader } from '@/components/dashboard/project-header'
 import { ProjectDetailClient } from '@/components/dashboard/project-detail-client'
 import type { RequestWithSubmissions } from '@/components/dashboard/asset-request-list'
@@ -28,8 +29,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const project = projectResult.data as import('@/lib/supabase/types').Project | null
   if (!project) notFound()
 
-  // Fetch asset requests + full submission data (latest per request)
-  const requestsResult = await supabase
+  // Fetch asset requests + full submission data (admin client bypasses RLS on joined submissions)
+  const admin = createAdminClient()
+  const requestsResult = await (admin as any)
     .from('asset_requests')
     .select(`
       *,
@@ -38,7 +40,13 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     .eq('project_id', project.id)
     .order('sort_order', { ascending: true })
 
-  const requests = (requestsResult.data ?? []) as RequestWithSubmissions[]
+  // PostgREST returns submissions as object (one-to-one FK) — normalize to array
+  const requests = ((requestsResult.data ?? []) as any[]).map(r => ({
+    ...r,
+    submissions: r.submissions
+      ? Array.isArray(r.submissions) ? r.submissions : [r.submissions]
+      : []
+  })) as RequestWithSubmissions[]
 
   const submittedCount = requests.filter(r => (r.submissions?.length ?? 0) > 0).length
 

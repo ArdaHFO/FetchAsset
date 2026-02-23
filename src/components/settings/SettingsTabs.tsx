@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Loader2, Check, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PLANS, formatPrice } from '@/lib/stripe/plans'
 import { WobblyCard, WobblyCardContent, WobblyButton } from '@/components/ui'
@@ -98,7 +100,52 @@ export default function SettingsTabs({
   subStatus,
   hasPaidPlan,
 }: SettingsTabsProps) {
+  const router = useRouter()
   const [tab, setTab] = useState<Tab>(activeDefault)
+
+  // Account tab — editable name
+  const [nameVal, setNameVal] = useState(fullName ?? '')
+  const [nameSaving, setNameSaving] = useState(false)
+  const [nameSaved, setNameSaved] = useState(false)
+  const [nameError, setNameError] = useState('')
+
+  async function saveName() {
+    if (!nameVal.trim()) return
+    setNameSaving(true)
+    setNameError('')
+    try {
+      const res = await fetch('/api/settings/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name: nameVal.trim() }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setNameError(json.error ?? 'Save failed.'); return }
+      setNameSaved(true)
+      router.refresh()
+      setTimeout(() => setNameSaved(false), 2500)
+    } catch {
+      setNameError('Save failed. Try again.')
+    } finally {
+      setNameSaving(false)
+    }
+  }
+
+  // Danger zone — delete account
+  const [deletePhase, setDeletePhase] = useState<'idle' | 'confirm' | 'deleting'>('idle')
+  const [deleteInput, setDeleteInput] = useState('')
+  const deleteConfirmWord = 'DELETE'
+
+  async function handleDeleteAccount() {
+    if (deleteInput !== deleteConfirmWord) return
+    setDeletePhase('deleting')
+    try {
+      await fetch('/api/settings/profile', { method: 'DELETE' })
+      window.location.href = '/'
+    } catch {
+      setDeletePhase('confirm')
+    }
+  }
 
   const hasBranding = plan === 'solo' || plan === 'pro' || plan === 'agency'
   const planMeta = PLANS[plan]
@@ -120,21 +167,121 @@ export default function SettingsTabs({
 
       {/* Account tab */}
       {tab === 'account' && (
-        <WobblyCard flavor="default" shadow="DEFAULT" radius="md">
-          <WobblyCardContent className="p-6 flex flex-col gap-4">
-            <h2 className="font-heading text-lg text-ink">Account</h2>
-            <div className="flex flex-col gap-1">
-              <span className="font-body text-xs text-ink/45 uppercase tracking-wider">Email</span>
-              <span className="font-body text-sm text-ink">{userEmail}</span>
-            </div>
-            {fullName && (
+        <div className="flex flex-col gap-5">
+          <WobblyCard flavor="default" shadow="DEFAULT" radius="md">
+            <WobblyCardContent className="p-6 flex flex-col gap-5">
+              <h2 className="font-heading text-lg text-ink">Account</h2>
+
+              {/* Email (read-only) */}
               <div className="flex flex-col gap-1">
-                <span className="font-body text-xs text-ink/45 uppercase tracking-wider">Name</span>
-                <span className="font-body text-sm text-ink">{fullName}</span>
+                <span className="font-body text-xs text-ink/45 uppercase tracking-wider">Email</span>
+                <span className="font-body text-sm text-ink">{userEmail}</span>
               </div>
-            )}
-          </WobblyCardContent>
-        </WobblyCard>
+
+              {/* Editable name */}
+              <div className="flex flex-col gap-2">
+                <label className="font-body text-xs text-ink/45 uppercase tracking-wider">Display Name</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={nameVal}
+                    onChange={(e) => { setNameVal(e.target.value); setNameSaved(false) }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') saveName() }}
+                    placeholder="Your name or agency name"
+                    className="flex-1 px-4 py-2.5 font-body text-sm text-ink bg-paper border-2 border-ink/30 outline-none focus:border-ink transition-all"
+                    style={{ borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px' }}
+                  />
+                  <WobblyButton
+                    variant="primary"
+                    size="sm"
+                    onClick={saveName}
+                    disabled={nameSaving || !nameVal.trim() || nameVal.trim() === (fullName ?? '')}
+                    className="flex-shrink-0"
+                  >
+                    {nameSaving
+                      ? <Loader2 size={14} className="animate-spin" />
+                      : nameSaved
+                      ? <><Check size={14} className="mr-1" />Saved!</>
+                      : 'Save'}
+                  </WobblyButton>
+                </div>
+                {nameError && <p className="font-body text-xs text-accent">{nameError}</p>}
+                <p className="font-body text-xs text-ink/35">
+                  Shown on your portal and in emails to clients.
+                </p>
+              </div>
+            </WobblyCardContent>
+          </WobblyCard>
+
+          {/* Danger zone */}
+          <WobblyCard flavor="default" shadow="DEFAULT" radius="md">
+            <WobblyCardContent className="p-6 flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={16} className="text-accent flex-shrink-0" />
+                <h2 className="font-heading text-lg text-accent">Danger Zone</h2>
+              </div>
+
+              {deletePhase === 'idle' && (
+                <>
+                  <p className="font-body text-sm text-ink/60">
+                    Permanently delete your account, all projects, and all uploaded files. This cannot be undone.
+                  </p>
+                  <WobblyButton
+                    variant="ghost"
+                    size="sm"
+                    className="self-start !border-accent !text-accent hover:!bg-accent/10"
+                    onClick={() => setDeletePhase('confirm')}
+                  >
+                    Delete my account
+                  </WobblyButton>
+                </>
+              )}
+
+              {(deletePhase === 'confirm' || deletePhase === 'deleting') && (
+                <div className="flex flex-col gap-3">
+                  <div
+                    className="p-4 bg-accent/5 border-2 border-accent/30"
+                    style={{ borderRadius: '10px 3px 10px 3px / 3px 10px 3px 10px' }}
+                  >
+                    <p className="font-body text-sm text-ink/80 mb-3">
+                      This will delete <strong>all your projects, submissions, and data</strong>. To confirm, type <strong>{deleteConfirmWord}</strong> below:
+                    </p>
+                    <input
+                      type="text"
+                      value={deleteInput}
+                      onChange={(e) => setDeleteInput(e.target.value.toUpperCase())}
+                      placeholder={deleteConfirmWord}
+                      disabled={deletePhase === 'deleting'}
+                      className="w-full px-4 py-2.5 font-body text-sm text-ink bg-paper border-2 border-accent/40 outline-none focus:border-accent transition-all"
+                      style={{ borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px' }}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <WobblyButton
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => { setDeletePhase('idle'); setDeleteInput('') }}
+                      disabled={deletePhase === 'deleting'}
+                    >
+                      Cancel
+                    </WobblyButton>
+                    <WobblyButton
+                      variant="primary"
+                      size="sm"
+                      className="!bg-accent !border-accent"
+                      onClick={handleDeleteAccount}
+                      disabled={deleteInput !== deleteConfirmWord || deletePhase === 'deleting'}
+                    >
+                      {deletePhase === 'deleting'
+                        ? <><Loader2 size={13} className="mr-1.5 animate-spin" />Deleting…</>
+                        : 'Delete everything'}
+                    </WobblyButton>
+                  </div>
+                </div>
+              )}
+            </WobblyCardContent>
+          </WobblyCard>
+        </div>
       )}
 
       {/* Billing tab */}

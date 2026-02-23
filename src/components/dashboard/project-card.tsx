@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { Copy, Check, ExternalLink, Clock, Calendar, AlertTriangle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Copy, Check, ExternalLink, Clock, Calendar, AlertTriangle, MoreHorizontal, Archive, CheckCircle2, Zap, Loader2 } from 'lucide-react'
 import { WobblyCard, WobblyCardContent, WobblyButton } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import type { Project } from '@/lib/supabase/types'
@@ -19,8 +20,26 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+  const router = useRouter()
   const [copied, setCopied] = useState(false)
-  const status = STATUS_STYLES[project.status] ?? STATUS_STYLES.draft
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [statusChanging, setStatusChanging] = useState(false)
+  const [currentStatus, setCurrentStatus] = useState(project.status)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [menuOpen])
+
+  const status = STATUS_STYLES[currentStatus] ?? STATUS_STYLES.draft
   const progress = project.progress ?? { total: 0, completed: 0 }
   const pct = progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0
   const magicUrl = project.magic_token
@@ -34,9 +53,34 @@ export function ProjectCard({ project }: ProjectCardProps) {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  async function changeStatus(newStatus: Project['status']) {
+    setMenuOpen(false)
+    setStatusChanging(true)
+    try {
+      const res = await fetch(`/api/projects/${project.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (res.ok) {
+        setCurrentStatus(newStatus)
+        router.refresh()
+      }
+    } finally {
+      setStatusChanging(false)
+    }
+  }
+
   const rotateVal = (['none', '-0.5', '0.5'] as const)[
     Math.abs(project.id.charCodeAt(0)) % 3
   ]
+
+  // Quick-action items based on current status
+  const menuItems: Array<{ label: string; icon: React.ElementType; status: Project['status']; color?: string }> = [
+    currentStatus !== 'active'    && { label: 'Mark Active',    icon: Zap,          status: 'active' as const },
+    currentStatus !== 'completed' && { label: 'Mark Complete',  icon: CheckCircle2, status: 'completed' as const, color: 'text-green-600' },
+    currentStatus !== 'archived'  && { label: 'Archive',        icon: Archive,      status: 'archived' as const, color: 'text-ink/50' },
+  ].filter(Boolean) as Array<{ label: string; icon: React.ElementType; status: Project['status']; color?: string }>
 
   return (
     <WobblyCard
@@ -62,15 +106,66 @@ export function ProjectCard({ project }: ProjectCardProps) {
               </p>
             )}
           </div>
-          <span
-            className={cn(
-              'font-body text-xs px-2.5 py-0.5 flex-shrink-0',
-              status.classes
-            )}
-            style={{ borderRadius: '20px 5px 20px 5px / 5px 20px 5px 20px' }}
-          >
-            {status.label}
-          </span>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <span
+              className={cn('font-body text-xs px-2.5 py-0.5', status.classes)}
+              style={{ borderRadius: '20px 5px 20px 5px / 5px 20px 5px 20px' }}
+            >
+              {status.label}
+            </span>
+            {/* Quick actions menu */}
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen((o) => !o)}
+                disabled={statusChanging}
+                className="p-1 text-ink/25 hover:text-ink hover:bg-muted transition-colors"
+                style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
+                title="Quick actions"
+              >
+                {statusChanging
+                  ? <Loader2 size={14} className="animate-spin" />
+                  : <MoreHorizontal size={14} />}
+              </button>
+              {menuOpen && (
+                <div
+                  className="absolute right-0 top-full mt-1 z-20 flex flex-col gap-0.5 p-1.5 bg-paper border-2 border-ink/20"
+                  style={{
+                    borderRadius: '10px 3px 10px 3px / 3px 10px 3px 10px',
+                    boxShadow: '3px 3px 0 0 #2d2d2d',
+                    minWidth: 148,
+                  }}
+                >
+                  {menuItems.map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <button
+                        key={item.status}
+                        onClick={() => changeStatus(item.status)}
+                        className={cn(
+                          'flex items-center gap-2 px-3 py-2 font-body text-sm hover:bg-muted transition-colors text-left w-full',
+                          item.color ?? 'text-ink'
+                        )}
+                        style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
+                      >
+                        <Icon size={13} />
+                        {item.label}
+                      </button>
+                    )
+                  })}
+                  <div className="my-0.5 border-t border-ink/10" />
+                  <Link
+                    href={`/projects/${project.id}`}
+                    className="flex items-center gap-2 px-3 py-2 font-body text-sm text-ink hover:bg-muted transition-colors"
+                    style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <ExternalLink size={13} />
+                    Open project
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Progress bar */}
@@ -140,7 +235,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 title="Copy client portal link"
                 className="!p-1.5 !h-7 !w-7"
               >
-                {copied ? <Check size={13} className="text-ink" /> : <Copy size={13} />}
+                {copied ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
               </WobblyButton>
             )}
             <WobblyButton

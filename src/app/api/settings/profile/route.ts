@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import type { ProfileUpdate } from '@/lib/supabase/types'
 
 export async function PATCH(req: NextRequest) {
   const supabase = await createClient()
@@ -7,7 +8,7 @@ export async function PATCH(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
 
   const body = await req.json()
-  const updates: Record<string, unknown> = {}
+  const updates: ProfileUpdate = {}
 
   // Only allow specific fields
   if (typeof body.full_name === 'string') {
@@ -22,7 +23,8 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
   }
 
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from('profiles')
     .update(updates)
     .eq('id', user.id)

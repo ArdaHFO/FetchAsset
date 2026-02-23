@@ -1,17 +1,20 @@
 import Link from 'next/link'
-import { Plus, FolderKanban, Search } from 'lucide-react'
+import { Plus, FolderKanban } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { WobblyButton } from '@/components/ui'
 import { ProjectCard } from '@/components/dashboard/project-card'
+import { ProjectFilters } from '@/components/dashboard/project-filters'
 
 export const dynamic = 'force-dynamic'
 
 const STATUS_FILTERS = ['all', 'active', 'draft', 'completed', 'archived'] as const
 type StatusFilter = (typeof STATUS_FILTERS)[number]
 
+type SortOption = 'newest' | 'oldest' | 'deadline' | 'client' | 'title'
+
 interface PageProps {
-  searchParams: { status?: string; q?: string }
+  searchParams: { status?: string; q?: string; sort?: string }
 }
 
 export default async function ProjectsPage({ searchParams }: PageProps) {
@@ -20,18 +23,42 @@ export default async function ProjectsPage({ searchParams }: PageProps) {
 
   const activeFilter = (searchParams.status ?? 'all') as StatusFilter
   const query = searchParams.q?.trim() ?? ''
+  const sort = (searchParams.sort ?? 'newest') as SortOption
+
+  // Fetch status counts for filter badges
+  const { data: allRows } = await supabase
+    .from('projects')
+    .select('status')
+    .eq('owner_id', user!.id)
+
+  const statusCounts: Record<string, number> = {}
+  for (const row of (allRows ?? []) as Array<{ status: string }>) {
+    statusCounts[row.status] = (statusCounts[row.status] ?? 0) + 1
+  }
 
   let dbQuery = supabase
     .from('projects')
     .select('*')
     .eq('owner_id', user!.id)
-    .order('created_at', { ascending: false })
 
   if (activeFilter !== 'all') {
     dbQuery = dbQuery.eq('status', activeFilter)
   }
   if (query) {
     dbQuery = dbQuery.or(`title.ilike.%${query}%,client_name.ilike.%${query}%`)
+  }
+
+  // Apply sort
+  if (sort === 'oldest') {
+    dbQuery = dbQuery.order('created_at', { ascending: true })
+  } else if (sort === 'deadline') {
+    dbQuery = dbQuery.order('due_date', { ascending: true, nullsFirst: false })
+  } else if (sort === 'client') {
+    dbQuery = dbQuery.order('client_name', { ascending: true })
+  } else if (sort === 'title') {
+    dbQuery = dbQuery.order('title', { ascending: true })
+  } else {
+    dbQuery = dbQuery.order('created_at', { ascending: false })
   }
 
   const projectsResult = await dbQuery
@@ -89,24 +116,13 @@ export default async function ProjectsPage({ searchParams }: PageProps) {
         </WobblyButton>
       </div>
 
-      {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        {STATUS_FILTERS.map((filter) => (
-          <Link
-            key={filter}
-            href={`/projects?status=${filter}${query ? `&q=${encodeURIComponent(query)}` : ''}`}
-            className="font-body text-sm px-3 py-1.5 border-2 border-ink/30 transition-all capitalize"
-            style={{
-              borderRadius: '245px 18px 200px 20px / 22px 210px 14px 240px',
-              background: activeFilter === filter ? '#2d2d2d' : 'transparent',
-              color: activeFilter === filter ? '#fdfbf7' : '#2d2d2d99',
-              boxShadow: activeFilter === filter ? '2px 2px 0px 0px #2d2d2d' : 'none',
-            }}
-          >
-            {filter}
-          </Link>
-        ))}
-      </div>
+      {/* Filter + Search bar */}
+      <ProjectFilters
+        currentQuery={query}
+        currentStatus={activeFilter}
+        currentSort={sort}
+        statusCounts={statusCounts}
+      />
 
       {/* Projects grid */}
       {projects.length === 0 ? (

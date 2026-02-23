@@ -253,35 +253,44 @@ export default async function Home() {
                 {
                   group: '🛠️ Account & Support',
                   rows: [
-                    { label: 'Email support',             vals: ['✓',  '✓',  '—',  '—'] },
-                    { label: 'Priority email support',    vals: ['—',  '—',  '✓',  '✓'] },
-                    { label: 'Data export (JSON)',  vals: ['✓',  '✓',  '✓',  '✓'] },
+                    { label: 'Email support',              vals: ['✓', '✓', '✓', '✓'] },
+                    { label: 'Priority email support',     vals: ['—', '—', '✓', '✓'] },
+                    { label: 'Direct founder support',     vals: ['—', '—', '—', '✓'] },
+                    { label: 'Data export (JSON)',         vals: ['✓', '✓', '✓', '✓'] },
                   ],
                 },
               ] as { group: string; rows: { label: string; vals: string[] }[] }[]).map((group, gi) => (
                 <>
-                  <tr key={`g${gi}`} className="border-t-2 border-dashed border-ink/10">
-                    <td colSpan={5} className="px-6 py-2 font-body text-xs font-bold text-ink/50 uppercase tracking-widest bg-muted/20">
+                  <tr key={`g${gi}`} className="border-t-2 border-dashed border-ink/15">
+                    <td colSpan={5} className="px-6 py-2.5 font-body text-xs font-bold text-ink/60 uppercase tracking-widest bg-muted/30">
                       {group.group}
                     </td>
                   </tr>
                   {group.rows.map((row, ri) => (
                     <tr key={`${gi}-${ri}`} className={ri % 2 === 0 ? 'bg-paper' : 'bg-muted/10'}>
-                      <td className="px-6 py-3 font-body text-sm text-ink/65">{row.label}</td>
+                      <td className="px-6 py-3.5 font-body text-sm text-ink/80 font-medium">{row.label}</td>
                       {row.vals.map((val, vi) => (
                         <td
                           key={vi}
-                          className="px-4 py-3 text-center font-body text-sm font-semibold"
-                          style={vi === 2 ? { background: 'rgba(45,45,45,0.03)' } : {}}
+                          className="px-4 py-3.5 text-center font-body text-sm"
+                          style={vi === 2 ? { background: 'rgba(230,57,70,0.04)' } : {}}
                         >
                           {val === '✓' ? (
-                            <span className="inline-flex items-center justify-center w-5 h-5 bg-ink/90 text-paper" style={{ borderRadius: '50%', fontSize: '10px', fontWeight: 700 }}>✓</span>
+                            <span
+                              className="inline-flex items-center justify-center w-5 h-5 text-paper"
+                              style={{
+                                borderRadius: '50%',
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                background: vi === 2 ? '#e63946' : '#2d2d2d',
+                              }}
+                            >✓</span>
                           ) : val === '—' ? (
-                            <span className="text-ink/20">—</span>
+                            <span className="text-ink/25 text-lg leading-none">&ndash;</span>
                           ) : val === '∞' ? (
-                            <span className="font-heading text-base text-ink">∞</span>
+                            <span className="font-heading text-lg text-ink">∞</span>
                           ) : (
-                            <span className="text-ink/70">{val}</span>
+                            <span className="font-heading text-base text-ink/85">{val}</span>
                           )}
                         </td>
                       ))}

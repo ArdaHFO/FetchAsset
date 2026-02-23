@@ -535,7 +535,10 @@ export function PortalChecklist({
         >
           <p className="font-heading text-xl text-green-800">🎉 All done — you're amazing!</p>
           <p className="font-body text-sm text-green-700">
-            We've received everything. <strong>Check your email</strong> — we've sent you a confirmation with a link to revisit your portal at any time.
+            We've received everything. Your agency will review and get back to you soon.
+          </p>
+          <p className="font-body text-xs text-green-600 mt-1">
+            💡 Bookmark this page — you can check back here at any time to see the status of your files.
           </p>
         </div>
       )}

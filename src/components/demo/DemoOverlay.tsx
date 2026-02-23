@@ -247,9 +247,11 @@ function PreStart({ onStart }: { onStart: () => void }) {
             'Deadline Buffer ⏳',
             'AI Suggest ✨',
             'Magic Link 🔗',
-            'The Nudger 🔔',
+            'Client Emails 📧',
             'AI Audit 🤖',
+            'Approve & Reject ✅',
             'Auto-Rename 🏷️',
+            'Portal Branding 🎨',
           ].map((tag, i) => (
             <motion.span
               key={tag}
@@ -478,6 +480,46 @@ function Step1SmartSetup({ onNext }: { onNext: () => void }) {
               label="🔔 The Nudger™"
               sub="Auto-remind client 48h & 24h before their deadline"
             />
+
+            {/* Nudge email preview — shows when nudger is on */}
+            <AnimatePresence>
+              {nudgerOn && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div
+                    className="border-[3px] border-ink/20 overflow-hidden"
+                    style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px', boxShadow: '3px 3px 0 0 rgba(45,45,45,0.15)' }}
+                  >
+                    <div className="bg-ink/80 text-paper px-3 py-1.5 flex items-center gap-2">
+                      <span className="font-body text-[10px] opacity-60">📧 Auto-email preview</span>
+                      <span className="ml-auto font-body text-[10px] bg-amber-400 text-ink px-1.5 py-0.5" style={{ borderRadius: '20px' }}>48h BEFORE</span>
+                    </div>
+                    <div className="p-3 bg-[#faf8f5] flex flex-col gap-1.5">
+                      <p className="font-body text-[11px] text-ink/40">
+                        <strong>To:</strong> client@email.com · <strong>Subject:</strong> ⏰ Gentle reminder — files due {fmt(clientDate)}
+                      </p>
+                      <p className="font-body text-xs text-ink/70">
+                        Hey! Just a friendly nudge — your <strong>Acme Corp</strong> assets are due <strong>{fmt(clientDate)}</strong>.
+                        Click below to upload them now.
+                      </p>
+                      <div
+                        className="text-center py-1.5 font-body text-[10px] font-bold text-paper bg-ink/80 mt-1"
+                        style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+                      >
+                        🔗 Open My Portal
+                      </div>
+                    </div>
+                  </div>
+                  <p className="font-body text-[10px] text-ink/30 mt-1.5 text-center">
+                    A second reminder is sent 24h before deadline automatically
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Confirm */}
             {!confirmed ? (
@@ -1387,8 +1429,54 @@ function Step6Success({ onRestart, demoState }: { onRestart: () => void; demoSta
               <span className="text-green-700 font-semibold">Client_{demoState.assetName.replace(/\s+/g,'')}_20260225{scenario.goodFile.slice(scenario.goodFile.lastIndexOf('.'))}</span>
               <span className="font-body text-xs bg-green-100 text-green-700 px-2 py-0.5" style={{ borderRadius: '20px' }}>✅ AI approved</span>
             </div>
+
+            {/* Approve / Reject controls */}
+            <div className="mt-2 pt-2 border-t border-ink/10 flex items-center gap-2">
+              <span className="font-body text-xs text-ink/40 mr-auto">Your review:</span>
+              <span
+                className="flex items-center gap-1 px-3 py-1 font-body text-xs font-bold text-paper bg-green-600"
+                style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '2px 2px 0 0 #2d2d2d' }}
+              >
+                <Check size={11} strokeWidth={3} /> Approve
+              </span>
+              <span
+                className="flex items-center gap-1 px-3 py-1 font-body text-xs font-bold text-ink border-2 border-ink/30"
+                style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+              >
+                <X size={11} strokeWidth={3} /> Reject
+              </span>
+            </div>
             <div className="mt-1 pt-2 border-t border-ink/10 font-body text-xs text-ink/45">
               Files auto-organised &middot; Deadline buffer secured &middot; Zero manual work
+            </div>
+          </div>
+        </motion.div>
+
+
+        {/* Agency notification email */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mb-6 border-[3px] border-ink overflow-hidden text-left"
+          style={{ borderRadius: '12px 3px 14px 3px / 3px 14px 3px 12px', boxShadow: '4px 4px 0 0 #2d2d2d' }}
+        >
+          <div className="bg-ink text-paper px-4 py-2 flex items-center gap-2">
+            <span className="font-body text-xs opacity-60">📧 You received an email</span>
+            <span className="ml-auto font-body text-xs bg-green-400 text-ink px-2 py-0.5" style={{ borderRadius: '20px' }}>INSTANT</span>
+          </div>
+          <div className="p-4 bg-[#faf8f5] flex flex-col gap-2">
+            <p className="font-body text-xs text-ink/40">
+              <strong>Subject:</strong> ✅ New submission — {demoState.assetName || 'Asset'}
+            </p>
+            <p className="font-body text-sm text-ink/70">
+              Your client just submitted <strong>{scenario.goodFile}</strong>. Llama 3.3 has audited it and everything looks good. Click below to review.
+            </p>
+            <div
+              className="text-center py-2 font-body text-xs font-bold text-paper bg-ink mt-1"
+              style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '2px 2px 0 0 #e63946' }}
+            >
+              Review in Dashboard →
             </div>
           </div>
         </motion.div>
@@ -1642,8 +1730,9 @@ export default function DemoOverlay() {
       {/* ── TOP BAR ── */}
       <div className="relative z-10 bg-paper/95 backdrop-blur-sm border-b-[3px] border-dashed border-muted flex items-center justify-between px-5 py-3 flex-shrink-0">
         <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="FetchAsset" width={26} height={26} />
-          <span className="font-heading text-xl text-ink">FetchAsset</span>
+          <Link href="/" className="font-heading text-xl text-ink hover:opacity-80 transition-opacity">
+            Fetch<span style={{ color: '#e63946' }}>Asset</span>
+          </Link>
           <span
             className="font-body text-[10px] text-ink/40 ml-1 px-2 py-0.5 bg-muted border border-ink/15"
             style={{ borderRadius: '20px' }}
@@ -1735,14 +1824,19 @@ export default function DemoOverlay() {
       {/* ── BOTTOM NAV (steps 0-5) ── */}
       {started && step < TOTAL_STEPS - 1 && (
         <div className="relative z-10 bg-paper/95 backdrop-blur-sm border-t-[3px] border-dashed border-muted flex items-center justify-between px-6 py-3 flex-shrink-0">
-          <button
-            type="button"
-            onClick={prev}
-            disabled={step === 0}
-            className="font-body text-sm text-ink/35 hover:text-ink disabled:opacity-0 transition-colors px-2 py-1"
-          >
-            &larr; Back
-          </button>
+          {step === 0 ? (
+            <Link href="/" className="font-body text-sm text-ink/35 hover:text-ink transition-colors px-2 py-1">
+              &larr; Home
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={prev}
+              className="font-body text-sm text-ink/35 hover:text-ink transition-colors px-2 py-1"
+            >
+              &larr; Back
+            </button>
+          )}
           <div className="font-body text-xs text-ink/35 hidden sm:block">
             {STEP_LABELS[step]}
           </div>

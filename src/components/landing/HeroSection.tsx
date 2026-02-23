@@ -65,14 +65,6 @@ export default function HeroSection() {
       {/* Demo overlay — mounted on top of page when triggered */}
       {showDemo && (
         <div className="fixed inset-0 z-[999]">
-          {/* Escape button */}
-          <button
-            onClick={() => setShowDemo(false)}
-            className="fixed top-5 right-5 z-[1001] font-body text-xs bg-paper border-2 border-ink px-3 py-1.5 hover:bg-muted transition-colors"
-            style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '2px 2px 0 0 #2d2d2d' }}
-          >
-            ✕ Close Demo
-          </button>
           <DemoOverlay />
         </div>
       )}

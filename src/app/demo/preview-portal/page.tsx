@@ -439,10 +439,10 @@ export default function DemoPreviewPortal() {
 
         {/* Back link */}
         <Link
-          href="/demo"
+          href="/"
           className="font-body text-sm text-ink/45 hover:text-ink transition-colors flex items-center gap-1 w-fit"
         >
-          <ArrowLeft size={14} /> Back to demo tour
+          <ArrowLeft size={14} /> Back to homepage
         </Link>
 
         {/* Greeting card */}

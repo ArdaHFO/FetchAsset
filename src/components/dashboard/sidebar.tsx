@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -84,12 +83,11 @@ export function Sidebar({ userEmail, plan = 'free' }: SidebarProps) {
       style={{ minWidth: 220 }}
     >
       {/* Logo */}
-      <div className="px-3 mb-4 flex items-center gap-2">
-        <Image src="/logo.png" alt="FetchAsset" width={32} height={32} />
+      <Link href="/" className="px-3 mb-4 flex items-center gap-2">
         <span className="font-heading text-2xl text-ink leading-none">
           Fetch<span className="text-accent">Asset</span>
         </span>
-      </div>
+      </Link>
 
       {/* Nav */}
       <nav className="flex flex-col gap-1 flex-1">

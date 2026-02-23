@@ -1,11 +1,12 @@
 import Link from 'next/link'
-import { FolderKanban, Plus, Clock, CheckCircle, AlertCircle, Activity } from 'lucide-react'
+import { FolderKanban, Plus, Clock, CheckCircle, AlertCircle, Activity, FileCheck, Inbox } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { WobblyButton } from '@/components/ui'
 import { StatCard } from '@/components/dashboard/stat-card'
 import { ProjectCard } from '@/components/dashboard/project-card'
 import { UsageMeter } from '@/components/dashboard/UsageMeter'
+import { ActivityFeed, type ActivityItem } from '@/components/dashboard/activity-feed'
 import { getUsageStats } from '@/lib/stripe/limits'
 
 export const dynamic = 'force-dynamic'
@@ -65,10 +66,87 @@ export default async function DashboardPage() {
 
   const allProjects: Array<{ id: string; status: string }> = allProjectsData ?? []
 
+  // Fetch ALL submissions across user projects for activity feed + stats
+  const allProjectIds = allProjects.map(p => p.id)
+  let allSubmissions: Array<{
+    id: string; created_at: string; updated_at: string; client_name: string;
+    file_name: string | null; status: string; ai_audit_status: string | null;
+    value_text: string | null; project_id: string; asset_request_id: string;
+  }> = []
+  let allRequestsMap: Record<string, { title: string; request_type: string }> = {}
+
+  if (allProjectIds.length > 0) {
+    const { data: subRows } = await (admin as any)
+      .from('submissions')
+      .select('id, created_at, updated_at, client_name, file_name, status, ai_audit_status, value_text, project_id, asset_request_id')
+      .in('project_id', allProjectIds)
+      .order('updated_at', { ascending: false })
+      .limit(20)
+
+    allSubmissions = subRows ?? []
+
+    // Fetch request titles for the activity items
+    if (allSubmissions.length > 0) {
+      const requestIds = [...new Set(allSubmissions.map(s => s.asset_request_id))]
+      const { data: reqTitles } = await (admin as any)
+        .from('asset_requests')
+        .select('id, title, request_type')
+        .in('id', requestIds)
+
+      for (const r of (reqTitles ?? []) as Array<{ id: string; title: string; request_type: string }>) {
+        allRequestsMap[r.id] = { title: r.title, request_type: r.request_type }
+      }
+    }
+  }
+
+  // Count pending review across all projects
+  let pendingReviewCount = 0
+  let totalFilesReceived = 0
+  if (allProjectIds.length > 0) {
+    const { count: pendingCount } = await (admin as any)
+      .from('submissions')
+      .select('id', { count: 'exact', head: true })
+      .in('project_id', allProjectIds)
+      .eq('status', 'pending_review')
+    pendingReviewCount = pendingCount ?? 0
+
+    const { count: totalCount } = await (admin as any)
+      .from('submissions')
+      .select('id', { count: 'exact', head: true })
+      .in('project_id', allProjectIds)
+    totalFilesReceived = totalCount ?? 0
+  }
+
+  // Build project title map for activity feed
+  const projectTitleMap: Record<string, string> = {}
+  for (const p of allProjects) {
+    projectTitleMap[p.id] = (p as any).title ?? 'Untitled'
+  }
+  // Also fetch titles for projects not in the recent 6 if needed
+  for (const p of projects) {
+    projectTitleMap[p.id] = p.title
+  }
+
+  // Build activity feed items
+  const activityItems: ActivityItem[] = allSubmissions.map(sub => ({
+    id: sub.id,
+    submissionId: sub.id,
+    timestamp: sub.updated_at,
+    clientName: sub.client_name,
+    requestTitle: allRequestsMap[sub.asset_request_id]?.title ?? 'Asset',
+    requestType: allRequestsMap[sub.asset_request_id]?.request_type ?? 'file',
+    projectId: sub.project_id,
+    projectTitle: projectTitleMap[sub.project_id] ?? 'Project',
+    status: sub.status,
+    aiAuditStatus: sub.ai_audit_status,
+    fileName: sub.file_name,
+  }))
+
   const stats = {
     total: allProjects.length,
     active: allProjects.filter((p) => p.status === 'active').length,
-    archived: allProjects.filter((p) => p.status === 'archived').length,
+    pendingReview: pendingReviewCount,
+    filesReceived: totalFilesReceived,
     completed: allProjects.filter((p) => p.status === 'completed').length,
   }
 
@@ -107,14 +185,35 @@ export default async function DashboardPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Projects" value={stats.total}     icon={FolderKanban} rotate="none" />
-        <StatCard label="Active"         value={stats.active}    icon={Activity}     rotate="0.5"  flavor="default" />
-        <StatCard label="Archived"       value={stats.archived}  icon={AlertCircle}  rotate="-0.5" />
-        <StatCard label="Completed"      value={stats.completed} icon={CheckCircle}  rotate="none" />
+        <StatCard label="Total Projects" value={stats.total}         icon={FolderKanban} rotate="none" />
+        <StatCard label="Active"         value={stats.active}        icon={Activity}     rotate="0.5"  flavor="default" />
+        <StatCard label="Pending Review" value={stats.pendingReview} icon={Inbox}        rotate="-0.5" flavor="postit" />
+        <StatCard label="Files Received" value={stats.filesReceived} icon={FileCheck}    rotate="none" />
       </div>
 
       {/* Usage meter */}
       <UsageMeter stats={usageStats} />
+
+      {/* Activity Feed */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-heading text-xl text-ink">Recent Activity</h2>
+          {activityItems.length > 0 && (
+            <span className="font-body text-xs text-ink/40">
+              Showing last {activityItems.length} events
+            </span>
+          )}
+        </div>
+        <div
+          className="p-5 border-2 border-ink/15 bg-paper"
+          style={{
+            borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px',
+            boxShadow: '3px 3px 0px 0px #2d2d2d',
+          }}
+        >
+          <ActivityFeed items={activityItems} />
+        </div>
+      </section>
 
       {/* Recent projects */}
       <section>

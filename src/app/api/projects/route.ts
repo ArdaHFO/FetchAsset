@@ -13,6 +13,8 @@ interface AssetRequestInput {
   sort_order: number
   allowed_file_types?: string[] | null
   max_file_size_mb?: number | null
+  min_width?: number | null
+  min_height?: number | null
   custom_instructions?: string | null
   naming_rule?: boolean
 }
@@ -108,6 +110,8 @@ export async function POST(req: NextRequest) {
         sort_order: i,
         allowed_file_types: a.allowed_file_types?.length ? a.allowed_file_types : null,
         max_file_size_mb: a.max_file_size_mb ?? null,
+        min_width: a.min_width ?? null,
+        min_height: a.min_height ?? null,
         custom_instructions: a.custom_instructions?.trim() || null,
         naming_rule: a.naming_rule ?? false,
       }))

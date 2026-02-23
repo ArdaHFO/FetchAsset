@@ -24,6 +24,8 @@ interface AssetItem {
   required: boolean
   allowed_file_types: string[]
   max_size_mb: number
+  min_width: number
+  min_height: number
   custom_instructions: string
   naming_rule: boolean
   quantity: number
@@ -150,6 +152,8 @@ function makeAsset(partial: Partial<AssetItem> = {}): AssetItem {
     required: true,
     allowed_file_types: [],
     max_size_mb: 50,
+    min_width: 0,
+    min_height: 0,
     custom_instructions: '',
     naming_rule: false,
     quantity: 1,
@@ -825,6 +829,33 @@ function StepAssets({
                               ))}
                             </div>
                           </div>
+
+                          {/* Min resolution (optional) */}
+                          <div className="flex items-center gap-2">
+                            <span className="font-body text-xs text-ink/50 w-20 flex-shrink-0">Min res.</span>
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="number"
+                                min={0}
+                                value={item.min_width || ''}
+                                onChange={(e) => update(item.id, { min_width: parseInt(e.target.value, 10) || 0 })}
+                                placeholder="1920"
+                                className="w-20 px-2 py-1 font-body text-xs text-ink bg-paper border border-ink/25 outline-none focus:border-ink/60 transition-all"
+                                style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+                              />
+                              <span className="font-body text-xs text-ink/40">×</span>
+                              <input
+                                type="number"
+                                min={0}
+                                value={item.min_height || ''}
+                                onChange={(e) => update(item.id, { min_height: parseInt(e.target.value, 10) || 0 })}
+                                placeholder="1080"
+                                className="w-20 px-2 py-1 font-body text-xs text-ink bg-paper border border-ink/25 outline-none focus:border-ink/60 transition-all"
+                                style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+                              />
+                              <span className="font-body text-xs text-ink/40">px&nbsp;(optional)</span>
+                            </div>
+                          </div>
                         </div>
                       )}
 
@@ -1042,6 +1073,8 @@ export default function NewProjectPage() {
                 ? a.allowed_file_types.map((t) => t.toLowerCase())
                 : null,
               max_file_size_mb: a.max_size_mb,
+              min_width: (a.request_type !== 'custom' && a.min_width > 0) ? a.min_width : null,
+              min_height: (a.request_type !== 'custom' && a.min_height > 0) ? a.min_height : null,
               custom_instructions: a.custom_instructions.trim() || null,
               naming_rule: a.naming_rule || form.global_naming_rule,
             }))

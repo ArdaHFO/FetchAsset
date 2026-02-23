@@ -129,39 +129,54 @@ export default async function Home() {
               <div key={tier} className="relative w-full md:flex-1 md:max-w-xs" style={{ transform: isPro ? 'translateY(-10px)' : undefined }}>
                 {isPro && (
                   <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-10">
-                    <span className="font-body text-xs font-bold px-4 py-1 bg-ink text-paper whitespace-nowrap" style={{ borderRadius: '20px 4px 20px 4px / 4px 20px 4px 20px' }}>
-                       Most popular
+                    <span
+                      className="font-heading text-sm font-bold px-5 py-1.5 bg-[#e63946] text-white whitespace-nowrap"
+                      style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '3px 3px 0 0 #2d2d2d' }}
+                    >
+                      ✦ Most Popular
                     </span>
                   </div>
                 )}
-                <div className="h-full flex flex-col bg-paper border-2 border-ink overflow-hidden" style={{ borderRadius: radius, boxShadow: isPro ? '6px 6px 0 0 #2d2d2d' : '4px 4px 0 0 #2d2d2d' }}>
-                  {isPro && <div className="h-1.5 bg-ink w-full" />}
+                <div
+                  className="h-full flex flex-col bg-paper overflow-hidden"
+                  style={{
+                    borderRadius: radius,
+                    boxShadow: isPro ? '6px 6px 0 0 #e63946' : '4px 4px 0 0 #2d2d2d',
+                    border: isPro ? '3px solid #e63946' : '2px solid rgba(45,45,45,0.7)',
+                  }}
+                >
+                  {isPro && <div className="h-1.5 bg-[#e63946] w-full" />}
                   <div className="flex flex-col flex-1 p-7">
-                    <div className="mb-5">
+                    {/* Price — top */}
+                    <div className="mb-4">
+                      <span className="font-heading text-4xl text-ink">{formatPrice(plan.monthlyPrice)}</span>
+                      {plan.monthlyPrice > 0 && <span className="font-body text-sm text-ink/50"> / mo</span>}
+                    </div>
+                    {/* Name + tagline */}
+                    <div className="mb-6 pb-5 border-b-2 border-dashed border-ink/10">
                       <h3 className="font-heading text-2xl text-ink">{plan.name}</h3>
                       <p className="font-body text-sm text-ink/50 mt-0.5">{plan.tagline}</p>
                     </div>
-                    <div className="mb-7">
-                      <span className="font-heading text-4xl text-ink">{formatPrice(plan.monthlyPrice)}</span>
-                      {plan.monthlyPrice > 0 && <span className="font-body text-sm text-ink/50"> / mo</span>}
-                      {isPro && (
-                        <p className="font-body text-xs text-ink/40 mt-1.5 leading-snug">
-                          Got a code? Apply it at checkout for a special launch discount.
-                        </p>
-                      )}
-                    </div>
-                    <ul className="flex flex-col gap-2.5 mb-7 flex-1">
-                      {plan.features.map((feat) => (
+                    {/* Short highlight bullets */}
+                    <ul className="flex flex-col gap-2 mb-6 flex-1">
+                      {plan.features.slice(0, 3).map((feat) => (
                         <li key={feat} className="flex items-start gap-2">
-                          <Check size={13} className="text-ink mt-0.5 flex-shrink-0" strokeWidth={3} />
-                          <span className="font-body text-sm text-ink/80">{feat}</span>
+                          <Check
+                            size={14}
+                            className={`mt-0.5 flex-shrink-0 ${isPro || isAgency ? 'text-green-600' : 'text-ink/60'}`}
+                            strokeWidth={2.5}
+                          />
+                          <span className="font-body text-sm text-ink/80 leading-snug">{feat}</span>
                         </li>
                       ))}
                     </ul>
                     {tier === 'free' ? (
-                      <Link href="/login" className="block">
-                        <WobblyButton variant="secondary" size="md" className="w-full">Start for free</WobblyButton>
-                      </Link>
+                      <div>
+                        <Link href="/login" className="block">
+                          <WobblyButton variant="secondary" size="md" className="w-full">Start for free</WobblyButton>
+                        </Link>
+                        <p className="font-body text-[11px] text-ink/40 text-center mt-2">No credit card required.</p>
+                      </div>
                     ) : (
                       <CheckoutButton
                         tier={tier}
@@ -186,20 +201,23 @@ export default async function Home() {
                 <th className="text-left px-6 py-4 text-xs font-normal text-ink/40 uppercase tracking-widest w-48">Feature</th>
                 {PLAN_ORDER.map((tier) => (
                   <th key={tier} className="px-4 py-4 text-center">
-                    <div className="flex flex-col items-center gap-1">
+                    <div className="flex flex-col items-center gap-1.5">
+                      <span className="font-heading text-2xl text-ink">
+                        {PLANS[tier].monthlyPrice === 0 ? 'Free' : `$${PLANS[tier].monthlyPrice / 100}`}
+                      </span>
+                      {PLANS[tier].monthlyPrice > 0 && (
+                        <span className="font-body text-[10px] text-ink/40">/mo</span>
+                      )}
                       <span
                         className="font-body text-xs font-bold px-3 py-0.5 border-2"
                         style={{
                           borderRadius: '20px 5px 20px 5px / 5px 20px 5px 20px',
-                          background: tier === 'pro' ? '#2d2d2d' : 'transparent',
-                          color: tier === 'pro' ? '#fdfbf7' : '#2d2d2d',
-                          borderColor: tier === 'pro' ? '#2d2d2d' : 'rgba(45,45,45,0.2)',
+                          background: tier === 'pro' ? '#e63946' : 'transparent',
+                          color: tier === 'pro' ? '#fff' : '#2d2d2d',
+                          borderColor: tier === 'pro' ? '#e63946' : 'rgba(45,45,45,0.2)',
                         }}
                       >
                         {PLANS[tier].name}
-                      </span>
-                      <span className="font-body text-xs text-ink/40">
-                        {PLANS[tier].monthlyPrice === 0 ? 'Free' : `$${PLANS[tier].monthlyPrice / 100}/mo`}
                       </span>
                     </div>
                   </th>

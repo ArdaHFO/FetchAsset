@@ -87,7 +87,7 @@ export default async function DashboardPage() {
 
     // Fetch request titles for the activity items
     if (allSubmissions.length > 0) {
-      const requestIds = [...new Set(allSubmissions.map(s => s.asset_request_id))]
+      const requestIds = Array.from(new Set(allSubmissions.map(s => s.asset_request_id)))
       const { data: reqTitles } = await (admin as any)
         .from('asset_requests')
         .select('id, title, request_type')

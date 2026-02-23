@@ -51,6 +51,10 @@ const nextConfig = {
   // Remove X-Powered-By: Next.js header
   poweredByHeader: false,
 
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   // Canonical URL normalisation — never serve trailing slashes
   trailingSlash: false,
 

@@ -1,6 +1,6 @@
-import type { PlanTier } from '@/lib/supabase/types'
+﻿import type { PlanTier } from '@/lib/supabase/types'
 
-// ── Plan meta ────────────────────────────────────────────────────────────────
+//  Plan meta 
 
 export interface PlanMeta {
   id: PlanTier
@@ -20,7 +20,7 @@ export const PLANS: Record<PlanTier, PlanMeta> = {
   free: {
     id: 'free',
     name: 'Free',
-    tagline: 'Try it out',
+    tagline: 'Perfect for your first client',
     monthlyPrice: 0,
     priceEnvKey: null,
     projectLimit: 1,
@@ -29,13 +29,13 @@ export const PLANS: Record<PlanTier, PlanMeta> = {
     teamMembers: 1,
     whiteLabel: false,
     features: [
-      '1 active project',
-      '3 requests per project',
-      '5 AI file audits / month',
-      'Magic-link client portal',
-      'Bulk file download',
-      'Basic branding — color, font, welcome text',
-      'Email submission notifications',
+      '1 project + 3 file requests',
+      'Magic-link portal  no login required for clients',
+      'AI reviews every uploaded file (5 / mo)',
+      'Approve, reject & comment on submissions',
+      'Bulk download all files with one click',
+      'Nudge clients with reminder emails',
+      'Basic portal branding (color, font, welcome text)',
       'Data export (JSON)',
     ],
   },
@@ -51,14 +51,14 @@ export const PLANS: Record<PlanTier, PlanMeta> = {
     teamMembers: 1,
     whiteLabel: false,
     features: [
-      '3 active projects',
-      'Unlimited requests per project',
-      '50 AI file audits / month',
-      'Magic-link client portal',
-      'Bulk file download',
-      'Full branding — logo, background, card color, tagline',
-      'Hide “Powered by FetchAsset” footer',
-      'Email submission notifications',
+      '3 projects + unlimited file requests',
+      'Magic-link portal  no login required for clients',
+      'AI reviews every uploaded file (50 / mo)',
+      'Approve, reject & comment on submissions',
+      'Bulk download all files with one click',
+      'Nudge clients with reminder emails',
+      'Full branding: logo, colors, tagline',
+      'Remove "Powered by FetchAsset" footer',
       'Data export (JSON)',
     ],
   },
@@ -74,20 +74,21 @@ export const PLANS: Record<PlanTier, PlanMeta> = {
     teamMembers: 5,
     whiteLabel: true,
     features: [
-      '15 active projects',
-      'Unlimited requests per project',
-      'Unlimited AI file audits',
-      'Magic-link client portal',
-      'Bulk file download',
+      '15 projects + unlimited file requests',
+      'Magic-link portal  no login required for clients',
+      'Unlimited AI file reviews',
+      'Approve, reject & comment on submissions',
+      'Bulk download all files with one click',
+      'Nudge clients with reminder emails',
       'Full branding + white-label portal',
-      'Up to 5 team members',
-      'Priority support',
+      'Custom instructions & file hints per request',
+      'Priority email support',
     ],
   },
   agency: {
     id: 'agency',
     name: 'Agency',
-    tagline: 'Elite — scale without limits',
+    tagline: 'Built to scale  no ceilings',
     monthlyPrice: 12900,
     priceEnvKey: 'STRIPE_AGENCY_PRICE_ID',
     projectLimit: -1,
@@ -96,19 +97,20 @@ export const PLANS: Record<PlanTier, PlanMeta> = {
     teamMembers: -1,
     whiteLabel: true,
     features: [
-      'Unlimited projects',
-      'Unlimited requests per project',
-      'Unlimited AI file audits',
-      'Magic-link client portal',
-      'Bulk file download',
+      'Unlimited projects & file requests',
+      'Magic-link portal  no login required for clients',
+      'Unlimited AI file reviews',
+      'Approve, reject & comment on submissions',
+      'Bulk download all files with one click',
+      'Nudge clients with reminder emails',
       'Full branding + white-label portal',
-      'Unlimited team members',
-      'Priority support',
+      'Custom instructions & file hints per request',
+      'Priority email support',
     ],
   },
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+//  Helpers 
 
 export function getStripePriceId(plan: PlanTier): string | null {
   const meta = PLANS[plan]
@@ -118,15 +120,7 @@ export function getStripePriceId(plan: PlanTier): string | null {
 
 export function formatPrice(cents: number): string {
   if (cents === 0) return 'Free'
-  return `$${(cents / 100).toFixed(0)}`
+  return `$${cents / 100}`
 }
 
-export function canCreateProject(plan: PlanTier, currentProjectCount: number): boolean {
-  const limit = PLANS[plan].projectLimit
-  return limit === -1 || currentProjectCount < limit
-}
-
-export function canAddRequest(plan: PlanTier, currentRequestCount: number): boolean {
-  const limit = PLANS[plan].requestsPerProject
-  return limit === -1 || currentRequestCount < limit
-}
+export const PLAN_ORDER: PlanTier[] = ['free', 'solo', 'pro', 'agency']

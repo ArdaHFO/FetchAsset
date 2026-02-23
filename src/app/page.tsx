@@ -209,33 +209,35 @@ export default async function Home() {
             <tbody>
               {([
                 {
-                  group: '📁 Projects & Requests',
+                  group: '📁 Projects & Capacity',
                   rows: [
                     { label: 'Active projects',        vals: ['1',  '3',  '15', '∞'] },
-                    { label: 'Requests per project',   vals: ['3',  '∞',  '∞',  '∞'] },
-                    { label: 'AI file audits / mo',    vals: ['5',  '50', '∞',  '∞'] },
-                    { label: 'Bulk file download',     vals: ['✓',  '✓',  '✓',  '✓'] },
+                    { label: 'File requests / project',   vals: ['3',  '∞',  '∞',  '∞'] },
+                    { label: 'AI file reviews / month',   vals: ['5',  '50', '∞',  '∞'] },
+                    { label: 'Bulk download all files',   vals: ['✓',  '✓',  '✓',  '✓'] },
+                    { label: 'Approve & reject uploads',  vals: ['✓',  '✓',  '✓',  '✓'] },
+                    { label: 'Client reminder emails',    vals: ['✓',  '✓',  '✓',  '✓'] },
                   ],
                 },
                 {
                   group: '🎨 Portal Branding',
                   rows: [
-                    { label: 'Accent color',                     vals: ['✓', '✓', '✓', '✓'] },
-                    { label: 'Welcome text & font',              vals: ['✓', '✓', '✓', '✓'] },
-                    { label: 'Wobble intensity',                  vals: ['✓', '✓', '✓', '✓'] },
+                    { label: 'Accent color & font',               vals: ['✓', '✓', '✓', '✓'] },
+                    { label: 'Custom welcome message',            vals: ['✓', '✓', '✓', '✓'] },
+                    { label: 'Portal animation style',            vals: ['✓', '✓', '✓', '✓'] },
                     { label: 'Custom agency logo',               vals: ['—', '✓', '✓', '✓'] },
-                    { label: 'Background & card color',          vals: ['—', '✓', '✓', '✓'] },
-                    { label: 'Agency tagline in header',         vals: ['—', '✓', '✓', '✓'] },
-                    { label: 'Hide "Powered by FetchAsset"',     vals: ['—', '✓', '✓', '✓'] },
+                    { label: 'Background & card colors',          vals: ['—', '✓', '✓', '✓'] },
+                    { label: 'Agency tagline in portal',          vals: ['—', '✓', '✓', '✓'] },
+                    { label: 'Remove "Powered by FetchAsset"',   vals: ['—', '✓', '✓', '✓'] },
+                    { label: 'Per-request instructions',          vals: ['—', '—', '✓', '✓'] },
                   ],
                 },
                 {
-                  group: '👥 Team & Support',
+                  group: '🛠️ Account & Support',
                   rows: [
-                    { label: 'Team members',       vals: ['1',  '1',  '5',  '∞'] },
-                    { label: 'Email notifications', vals: ['✓',  '✓',  '✓',  '✓'] },
+                    { label: 'Email support',             vals: ['✓',  '✓',  '—',  '—'] },
+                    { label: 'Priority email support',    vals: ['—',  '—',  '✓',  '✓'] },
                     { label: 'Data export (JSON)',  vals: ['✓',  '✓',  '✓',  '✓'] },
-                    { label: 'Priority support',   vals: ['—',  '—',  '✓',  '✓'] },
                   ],
                 },
               ] as { group: string; rows: { label: string; vals: string[] }[] }[]).map((group, gi) => (

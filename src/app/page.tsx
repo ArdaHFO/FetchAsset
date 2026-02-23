@@ -28,7 +28,6 @@ import ThreeStepMagic from '@/components/landing/ThreeStepMagic'
 import ClientPortalPreview from '@/components/landing/ClientPortalPreview'
 import CheckoutButton from '@/components/CheckoutButton'
 import LandingNav from '@/components/landing/LandingNav'
-import MascotVideo from '@/components/landing/MascotVideo'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
@@ -92,16 +91,13 @@ export default async function Home() {
       {/* NAVBAR */}
       <LandingNav userName={userName} />
 
-      {/* ── HERO + STATS (client component — handles Demo overlay) ── */}
+      {/* ── HERO (client component — handles Demo overlay) ── */}
       <HeroSection />
 
-      {/* ── MASCOT VIDEO ── */}
-      <MascotVideo />
-
-      {/* ── CHAOS TABLE: Old Way vs FetchAsset Way ── */}
+      {/* ── CHAOS TABLE + MASCOT VIDEO (combined) ── */}
       <ChaosTable />
 
-      {/* â”€â”€ 3-STEP MAGIC (framer motion scroll, mascot peek) â”€â”€ */}
+      {/* ── 3-STEP MAGIC (framer motion scroll, mascot peek) ── */}
       <ThreeStepMagic />
 
       {/* â”€â”€ AI AUDIT PREVIEW â”€â”€ */}

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { Plus, Trash2, FileCheck2, FileX2, FileClock, File, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { WobblyButton } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import type { AssetRequest, RequestType, Submission } from '@/lib/supabase/types'
@@ -71,6 +70,7 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
   const [adding, setAdding] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [addError, setAddError] = useState<string | null>(null)
 
   // ── New request form state ────────────────────────────────
   const [newTitle, setNewTitle] = useState('')
@@ -101,6 +101,7 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
     setNewChoices('')
     setCustomTypeInput('')
     setShowCustomType(false)
+    setAddError(null)
     setAdding(false)
   }
 
@@ -123,9 +124,7 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
   async function addRequest() {
     if (!newTitle.trim()) return
     setSaving(true)
-    const supabaseClient = createClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const supabase = supabaseClient as any
+    setAddError(null)
 
     const payload: Record<string, unknown> = {
       project_id: projectId,
@@ -154,24 +153,42 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
       payload.choices = parsed.length > 0 ? parsed : null
     }
 
-    const { data, error } = await supabase
-      .from('asset_requests')
-      .insert(payload)
-      .select()
-      .single()
+    try {
+      const res = await fetch('/api/asset-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
 
-    if (!error && data) {
-      setRequests((prev) => [...prev, { ...data, submissions: [] }])
+      const result = await res.json()
+
+      if (!res.ok) {
+        console.error('[addRequest] API error:', result.error)
+        setAddError(result.error || 'Failed to add request')
+        setSaving(false)
+        return
+      }
+
+      setRequests((prev) => [...prev, { ...result.data, submissions: [] }])
       resetForm()
+    } catch (err) {
+      console.error('[addRequest] Network error:', err)
+      setAddError('Network error — please try again')
     }
     setSaving(false)
     router.refresh()
   }
 
   async function deleteRequest(id: string) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const supabase = createClient() as any
-    await supabase.from('asset_requests').delete().eq('id', id)
+    try {
+      const res = await fetch(`/api/asset-requests?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const result = await res.json()
+        console.error('[deleteRequest] API error:', result.error)
+      }
+    } catch (err) {
+      console.error('[deleteRequest] Network error:', err)
+    }
     setRequests((prev) => prev.filter((r) => r.id !== id))
     setDeleteConfirmId(null)
     router.refresh()
@@ -330,6 +347,15 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
           </div>
 
           <div className="flex flex-col gap-3 px-4 py-4">
+            {/* Error message */}
+            {addError && (
+              <div
+                className="font-body text-xs text-white bg-accent/90 px-3 py-2"
+                style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
+              >
+                ⚠️ {addError}
+              </div>
+            )}
             {/* Type + Title row */}
             <div className="flex gap-2">
               <select

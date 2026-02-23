@@ -175,8 +175,106 @@ export default async function Home() {
             )
           })}
         </div>
-        <p className="font-body text-sm text-ink/40 text-center mt-10">
-          Upgrade or downgrade any time &middot; Cancel anytime
+        {/* ── Feature comparison grid ── */}
+        <div
+          className="mt-20 overflow-x-auto border-2 border-ink/15 bg-paper"
+          style={{ borderRadius: '20px 5px 20px 5px / 5px 20px 5px 20px', boxShadow: '4px 4px 0 0 #2d2d2d' }}
+        >
+          <table className="w-full font-body text-sm min-w-[600px]">
+            <thead>
+              <tr className="border-b-2 border-ink/10">
+                <th className="text-left px-6 py-4 text-xs font-normal text-ink/40 uppercase tracking-widest w-48">Feature</th>
+                {PLAN_ORDER.map((tier) => (
+                  <th key={tier} className="px-4 py-4 text-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <span
+                        className="font-body text-xs font-bold px-3 py-0.5 border-2"
+                        style={{
+                          borderRadius: '20px 5px 20px 5px / 5px 20px 5px 20px',
+                          background: tier === 'pro' ? '#2d2d2d' : 'transparent',
+                          color: tier === 'pro' ? '#fdfbf7' : '#2d2d2d',
+                          borderColor: tier === 'pro' ? '#2d2d2d' : 'rgba(45,45,45,0.2)',
+                        }}
+                      >
+                        {PLANS[tier].name}
+                      </span>
+                      <span className="font-body text-xs text-ink/40">
+                        {PLANS[tier].monthlyPrice === 0 ? 'Free' : `$${PLANS[tier].monthlyPrice / 100}/mo`}
+                      </span>
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {([
+                {
+                  group: '📁 Projects & Requests',
+                  rows: [
+                    { label: 'Active projects',        vals: ['1',  '3',  '15', '∞'] },
+                    { label: 'Requests per project',   vals: ['3',  '∞',  '∞',  '∞'] },
+                    { label: 'AI file audits / mo',    vals: ['5',  '50', '∞',  '∞'] },
+                    { label: 'Bulk file download',     vals: ['✓',  '✓',  '✓',  '✓'] },
+                  ],
+                },
+                {
+                  group: '🎨 Portal Branding',
+                  rows: [
+                    { label: 'Accent color',                     vals: ['✓', '✓', '✓', '✓'] },
+                    { label: 'Welcome text & font',              vals: ['✓', '✓', '✓', '✓'] },
+                    { label: 'Wobble intensity',                  vals: ['✓', '✓', '✓', '✓'] },
+                    { label: 'Custom agency logo',               vals: ['—', '✓', '✓', '✓'] },
+                    { label: 'Background & card color',          vals: ['—', '✓', '✓', '✓'] },
+                    { label: 'Agency tagline in header',         vals: ['—', '✓', '✓', '✓'] },
+                    { label: 'Hide "Powered by FetchAsset"',     vals: ['—', '✓', '✓', '✓'] },
+                  ],
+                },
+                {
+                  group: '👥 Team & Support',
+                  rows: [
+                    { label: 'Team members',       vals: ['1',  '1',  '5',  '∞'] },
+                    { label: 'Email notifications', vals: ['✓',  '✓',  '✓',  '✓'] },
+                    { label: 'Data export (JSON)',  vals: ['✓',  '✓',  '✓',  '✓'] },
+                    { label: 'Priority support',   vals: ['—',  '—',  '✓',  '✓'] },
+                  ],
+                },
+              ] as { group: string; rows: { label: string; vals: string[] }[] }[]).map((group, gi) => (
+                <>
+                  <tr key={`g${gi}`} className="border-t-2 border-dashed border-ink/10">
+                    <td colSpan={5} className="px-6 py-2 font-body text-xs font-bold text-ink/50 uppercase tracking-widest bg-muted/20">
+                      {group.group}
+                    </td>
+                  </tr>
+                  {group.rows.map((row, ri) => (
+                    <tr key={`${gi}-${ri}`} className={ri % 2 === 0 ? 'bg-paper' : 'bg-muted/10'}>
+                      <td className="px-6 py-3 font-body text-sm text-ink/65">{row.label}</td>
+                      {row.vals.map((val, vi) => (
+                        <td
+                          key={vi}
+                          className="px-4 py-3 text-center font-body text-sm font-semibold"
+                          style={vi === 2 ? { background: 'rgba(45,45,45,0.03)' } : {}}
+                        >
+                          {val === '✓' ? (
+                            <span className="inline-flex items-center justify-center w-5 h-5 bg-ink/90 text-paper" style={{ borderRadius: '50%', fontSize: '10px', fontWeight: 700 }}>✓</span>
+                          ) : val === '—' ? (
+                            <span className="text-ink/20">—</span>
+                          ) : val === '∞' ? (
+                            <span className="font-heading text-base text-ink">∞</span>
+                          ) : (
+                            <span className="text-ink/70">{val}</span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="font-body text-sm text-ink/40 text-center mt-8">
+          Upgrade or downgrade any time &middot; Cancel anytime &middot; No credit card required for Free
         </p>
       </section>
 

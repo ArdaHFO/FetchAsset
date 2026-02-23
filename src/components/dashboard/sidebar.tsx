@@ -83,7 +83,7 @@ export function Sidebar({ userEmail, plan = 'free' }: SidebarProps) {
       style={{ minWidth: 220 }}
     >
       {/* Logo */}
-      <Link href="/" className="px-3 mb-4 flex items-center gap-2">
+      <Link href="/onboarding" className="px-3 mb-4 flex items-center gap-2">
         <span className="font-heading text-2xl text-ink leading-none">
           Fetch<span className="text-accent">Asset</span>
         </span>

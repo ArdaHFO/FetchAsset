@@ -4,22 +4,41 @@
  */
 import { X, Check } from 'lucide-react'
 
-const ROWS = [
+const ROWS: { bad: string; good: string; tag: string }[] = [
   {
-    bad:  '50+ back-and-forth emails',
-    good: 'One Magic Link',
+    bad:  '50+ back-and-forth emails just to collect files',
+    good: 'One magic link — client uploads in seconds',
+    tag:  '🔗 Magic Links',
   },
   {
-    bad:  'Manual file checking',
-    good: 'AI-Powered Auto-Audit (Llama 3.3)',
+    bad:  '"What file type do you need again?"',
+    good: 'AI writes exact specs for every asset automatically',
+    tag:  '✨ AI Specification',
   },
   {
-    bad:  'Files lost in Drive / Slack',
-    good: 'Organized Dashboard',
+    bad:  'Clients sending wrong formats, wrong sizes',
+    good: 'AI flags every issue the moment files arrive',
+    tag:  '🤖 AI Audit',
   },
   {
-    bad:  'Manual reminders',
-    good: 'Automated smart follow-ups',
+    bad:  'Chasing clients manually every few days',
+    good: 'Smart follow-up emails sent automatically',
+    tag:  '⏰ Nudger',
+  },
+  {
+    bad:  'Files buried in Drive, Slack, and email threads',
+    good: 'Everything organized in one clean dashboard',
+    tag:  '📂 Dashboard',
+  },
+  {
+    bad:  'Generic WeTransfer links that look unprofessional',
+    good: 'Branded portal that looks like your agency',
+    tag:  '🎨 Portal Branding',
+  },
+  {
+    bad:  'Clients creating accounts just to send you a file',
+    good: 'Zero friction — no password, no signup needed',
+    tag:  '✦ Passwordless',
   },
 ]
 
@@ -29,47 +48,50 @@ export default function ChaosTable() {
       <div className="text-center mb-12">
         <span className="tag-label">Why switch?</span>
         <h2 className="section-title mt-4">The old way vs. the FetchAsset way</h2>
+        <p className="font-body text-ink/45 mt-3 max-w-md mx-auto text-sm leading-relaxed">
+          Every row below is a real problem we&rsquo;ve eliminated.
+        </p>
       </div>
 
       <div className="max-w-3xl mx-auto">
         {/* Column headers */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-3">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4">
           <div
-            className="text-center py-2 font-heading text-[10px] sm:text-base text-ink/50 bg-muted border-2 border-ink/20"
+            className="text-center py-2.5 font-heading text-xs sm:text-base text-ink/50 bg-muted border-2 border-ink/20"
             style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px' }}
           >
-            ✉️ <span className="hidden xs:inline">The Old Way</span><span className="xs:hidden">Old Way</span> (Email Chaos)
+            ✉️ The Old Way
           </div>
           <div
-            className="text-center py-2 font-heading text-[10px] sm:text-base text-ink bg-ink text-paper border-2 border-ink"
+            className="text-center py-2.5 font-heading text-xs sm:text-base text-paper bg-ink border-2 border-ink"
             style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px', boxShadow: '4px 4px 0 0 #2d2d2d' }}
           >
-            ✦ FetchAsset Way
+            ✦ The FetchAsset Way
           </div>
         </div>
 
         {/* Rows */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
           {ROWS.map((row, i) => (
             <div
               key={i}
               className="grid grid-cols-2 gap-2 sm:gap-4"
-              style={{ transform: i % 2 === 0 ? 'rotate(-0.2deg)' : 'rotate(0.2deg)' }}
+              style={{ transform: i % 2 === 0 ? 'rotate(-0.15deg)' : 'rotate(0.15deg)' }}
             >
               {/* Bad side */}
               <div
-                className="flex items-start gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-3 bg-[#f5f0ea] border-2 border-ink/20"
+                className="flex items-start gap-2 sm:gap-2.5 px-3 sm:px-4 py-2.5 sm:py-3 bg-[#f5f0ea] border-2 border-ink/15"
                 style={{ borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px' }}
               >
                 <div className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 rounded-full bg-red-100 border-2 border-red-300 flex items-center justify-center mt-0.5">
                   <X size={8} strokeWidth={3} className="text-red-500" />
                 </div>
-                <span className="font-body text-[11px] sm:text-sm text-ink/55 line-through">{row.bad}</span>
+                <span className="font-body text-[11px] sm:text-sm text-ink/50 line-through leading-snug">{row.bad}</span>
               </div>
 
               {/* Good side */}
               <div
-                className="flex items-start gap-1.5 sm:gap-2.5 px-2.5 sm:px-4 py-2 sm:py-3 bg-[#f0fdf4] border-2 border-green-300"
+                className="flex items-start gap-2 sm:gap-2.5 px-3 sm:px-4 py-2.5 sm:py-3 bg-[#f0fdf4] border-2 border-green-300"
                 style={{
                   borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px',
                   boxShadow: '3px 3px 0 0 #2d2d2d',
@@ -78,11 +100,24 @@ export default function ChaosTable() {
                 <div className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 rounded-full bg-green-100 border-2 border-green-400 flex items-center justify-center mt-0.5">
                   <Check size={8} strokeWidth={3} className="text-green-600" />
                 </div>
-                <span className="font-body text-[11px] sm:text-sm text-ink font-bold">{row.good}</span>
+                <div className="min-w-0">
+                  <span className="font-body text-[11px] sm:text-sm text-ink font-bold leading-snug block">{row.good}</span>
+                  <span
+                    className="font-body text-[9px] sm:text-[10px] text-green-700/70 mt-0.5 inline-block px-1.5 py-0.5 bg-green-100 border border-green-200"
+                    style={{ borderRadius: '20px' }}
+                  >
+                    {row.tag}
+                  </span>
+                </div>
               </div>
             </div>
           ))}
         </div>
+
+        {/* Bottom summary */}
+        <p className="font-body text-center text-sm text-ink/40 mt-8">
+          All of this — free to start. No card required.
+        </p>
       </div>
     </section>
   )

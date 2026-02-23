@@ -1761,15 +1761,13 @@ export default function DemoOverlay() {
             {muted ? <VolumeX size={13} /> : <Volume2 size={13} />}
             <span className="hidden sm:inline">{muted ? 'Unmute' : 'Mute'}</span>
           </button>
-          <Link href="/">
-            <button
-              type="button"
-              className="border-2 border-ink px-3 py-1.5 font-body text-xs flex items-center gap-1.5 hover:bg-muted transition-colors active:translate-y-px"
-              style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '2px 2px 0 0 #2d2d2d' }}
-            >
-              <X size={13} />
-              <span className="hidden sm:inline">Exit</span>
-            </button>
+          <Link
+            href="/"
+            className="border-2 border-ink px-3 py-1.5 font-body text-xs flex items-center gap-1.5 hover:bg-muted transition-colors active:translate-y-px"
+            style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '2px 2px 0 0 #2d2d2d' }}
+          >
+            <X size={13} />
+            <span className="hidden sm:inline">Exit</span>
           </Link>
         </div>
       </div>

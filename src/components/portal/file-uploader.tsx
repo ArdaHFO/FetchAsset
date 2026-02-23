@@ -11,6 +11,8 @@ interface FileUploaderProps {
   clientName: string
   allowedTypes?: string[] | null
   maxSizeMb?: number | null
+  minWidth?: number | null
+  minHeight?: number | null
   clientNote?: string
   onSuccess: (submissionId: string) => void
   onError: (msg: string) => void
@@ -25,6 +27,8 @@ export function FileUploader({
   clientName,
   allowedTypes,
   maxSizeMb,
+  minWidth,
+  minHeight,
   clientNote,
   onSuccess,
   onError,
@@ -34,8 +38,11 @@ export function FileUploader({
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [checking, setChecking] = useState(false)
 
   const maxBytes = maxSizeMb ? maxSizeMb * 1024 * 1024 : 100 * 1024 * 1024
+
+  const hasResolutionConstraint = !!(minWidth || minHeight)
 
   function validateFile(file: File): string | null {
     if (file.size > maxBytes) {
@@ -51,15 +58,58 @@ export function FileUploader({
     return null
   }
 
-  const handleFiles = useCallback((files: FileList | null) => {
+  /** Check image dimensions against min_width / min_height constraints */
+  function checkImageResolution(file: File): Promise<string | null> {
+    return new Promise((resolve) => {
+      // Only check image files
+      if (!file.type.startsWith('image/')) {
+        resolve(null)
+        return
+      }
+      const url = URL.createObjectURL(file)
+      const img = new window.Image()
+      img.onload = () => {
+        URL.revokeObjectURL(url)
+        const errors: string[] = []
+        if (minWidth && img.naturalWidth < minWidth) {
+          errors.push(`width is ${img.naturalWidth}px (min ${minWidth}px)`)
+        }
+        if (minHeight && img.naturalHeight < minHeight) {
+          errors.push(`height is ${img.naturalHeight}px (min ${minHeight}px)`)
+        }
+        if (errors.length > 0) {
+          resolve(`Image resolution too low: ${errors.join(', ')}.`)
+        } else {
+          resolve(null)
+        }
+      }
+      img.onerror = () => {
+        URL.revokeObjectURL(url)
+        // Can't read dimensions — skip check
+        resolve(null)
+      }
+      img.src = url
+    })
+  }
+
+  const handleFiles = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return
     const file = files[0]
     const err = validateFile(file)
     if (err) { onError(err); return }
+
+    // Check resolution if constraints exist and it's an image
+    if (hasResolutionConstraint && file.type.startsWith('image/')) {
+      setChecking(true)
+      const resErr = await checkImageResolution(file)
+      setChecking(false)
+      if (resErr) { onError(resErr); return }
+    }
+
     setSelectedFile(file)
     onError('')
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allowedTypes, maxBytes])
+  }, [allowedTypes, maxBytes, minWidth, minHeight, hasResolutionConstraint])
 
   function onDrop(e: React.DragEvent) {
     e.preventDefault()
@@ -121,7 +171,12 @@ export function FileUploader({
           accept={allowedTypes ? allowedTypes.map((t) => `.${t}`).join(',') : undefined}
         />
 
-        {selectedFile ? (
+        {checking ? (
+          <>
+            <Loader2 size={32} className="text-ink/40 animate-spin" />
+            <p className="font-body text-sm text-ink/50">Checking resolution…</p>
+          </>
+        ) : selectedFile ? (
           <>
             <FileCheck size={32} className="text-ink/60" />
             <div className="text-center">

@@ -113,6 +113,9 @@ export interface AssetRequest {
   allowed_file_types: string[] | null  // e.g. ['svg', 'png', 'pdf']
   max_file_size_mb: number | null
   multiple_files: boolean
+  // Image resolution constraints (for 'file' type — images only)
+  min_width: number | null            // e.g. 1920
+  min_height: number | null           // e.g. 1080
   // Smart Builder extras
   custom_instructions: string | null  // Agency notes shown to client
   naming_rule: boolean                // Auto-rename uploaded files

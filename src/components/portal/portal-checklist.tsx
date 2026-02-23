@@ -285,7 +285,7 @@ function RequestItem({
             </div>
           )}
 
-          {/* File type/size hints */}
+          {/* File type/size/resolution hints */}
           {request.request_type === 'file' && !submitted && (
             <div className="flex flex-wrap items-center gap-2 font-body text-xs text-ink/45">
               {request.allowed_file_types && request.allowed_file_types.length > 0 && (
@@ -298,6 +298,26 @@ function RequestItem({
                   Max {request.max_file_size_mb} MB
                 </span>
               )}
+              {(request.min_width || request.min_height) && (
+                <span className="px-2 py-0.5 bg-blue/8 border border-blue/15 text-blue/70" style={{ borderRadius: '6px' }}>
+                  Min {request.min_width ?? '—'}×{request.min_height ?? '—'} px
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Example / reference link */}
+          {request.example_url && !submitted && (
+            <div className="flex items-center gap-2 font-body text-xs">
+              <span className="text-ink/40">📎 Example:</span>
+              <a
+                href={request.example_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue hover:underline truncate"
+              >
+                {request.example_url}
+              </a>
             </div>
           )}
 
@@ -383,6 +403,8 @@ function RequestItem({
                   clientName={clientName}
                   allowedTypes={request.allowed_file_types}
                   maxSizeMb={request.max_file_size_mb}
+                  minWidth={request.min_width}
+                  minHeight={request.min_height}
                   clientNote={clientNote}
                   onSuccess={onUploadSuccess}
                   onError={setError}

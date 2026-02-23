@@ -50,6 +50,9 @@ function buildUserPrompt(request: AssetRequest, submission: Submission): string 
     request.max_file_size_mb
       ? `Max file size: ${request.max_file_size_mb} MB`
       : '',
+    request.min_width || request.min_height
+      ? `Minimum image resolution: ${request.min_width ?? 'any'}×${request.min_height ?? 'any'} px`
+      : '',
     `Required: ${request.required ? 'YES' : 'No'}`,
     '',
     `=== CLIENT SUBMISSION ===`,
@@ -77,7 +80,7 @@ function buildUserPrompt(request: AssetRequest, submission: Submission): string 
       '',
       `=== YOUR TASK ===`,
       `Evaluate whether this file submission meets the requirements.`,
-      `Consider: file type match, naming conventions, file size, and any red flags.`,
+      `Consider: file type match, naming conventions, file size, resolution requirements, and any red flags.`,
       `Note: You cannot view the file contents — evaluate based on metadata only.`,
     )
   } else if (request.request_type === 'url') {

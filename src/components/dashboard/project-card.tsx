@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Copy, Check, ExternalLink, Clock } from 'lucide-react'
+import { Copy, Check, ExternalLink, Clock, Calendar, AlertTriangle } from 'lucide-react'
 import { WobblyCard, WobblyCardContent, WobblyButton } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import type { Project } from '@/lib/supabase/types'
@@ -87,15 +87,38 @@ export function ProjectCard({ project }: ProjectCardProps) {
               style={{ borderRadius: '10px 2px 10px 2px / 2px 10px 2px 10px' }}
             >
               <div
-                className="h-full bg-ink transition-all"
+                className="h-full transition-all"
                 style={{
                   width: `${pct}%`,
                   borderRadius: '10px 2px 10px 2px / 2px 10px 2px 10px',
+                  background: pct === 100 ? '#22c55e' : pct > 50 ? '#3b82f6' : '#2d2d2d',
                 }}
               />
             </div>
           </div>
         )}
+
+        {/* Deadline warning */}
+        {project.due_date && (() => {
+          const daysLeft = Math.ceil((new Date(project.due_date).getTime() - Date.now()) / (1000*60*60*24))
+          if (daysLeft < 0 && project.status === 'active') {
+            return (
+              <div className="flex items-center gap-1.5 font-body text-xs text-accent">
+                <AlertTriangle size={12} />
+                Overdue by {Math.abs(daysLeft)} day{Math.abs(daysLeft) !== 1 ? 's' : ''}
+              </div>
+            )
+          }
+          if (daysLeft <= 3 && daysLeft >= 0 && project.status === 'active') {
+            return (
+              <div className="flex items-center gap-1.5 font-body text-xs text-amber-600">
+                <Calendar size={12} />
+                {daysLeft === 0 ? 'Due today' : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`}
+              </div>
+            )
+          }
+          return null
+        })()}
 
         {/* Footer */}
         <div className="flex items-center justify-between gap-2 mt-auto pt-1">

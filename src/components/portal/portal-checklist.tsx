@@ -271,6 +271,36 @@ function RequestItem({
             </div>
           )}
 
+          {/* Custom instructions from agency */}
+          {request.custom_instructions && !submitted && (
+            <div
+              className="flex items-start gap-2 px-4 py-3 bg-blue/5 border border-blue/20"
+              style={{ borderRadius: '10px 3px 10px 3px / 3px 10px 3px 10px' }}
+            >
+              <span className="text-sm flex-shrink-0 mt-0.5">💡</span>
+              <div>
+                <p className="font-body text-xs text-blue font-semibold mb-0.5">Instructions</p>
+                <p className="font-body text-sm text-ink/70">{request.custom_instructions}</p>
+              </div>
+            </div>
+          )}
+
+          {/* File type/size hints */}
+          {request.request_type === 'file' && !submitted && (
+            <div className="flex flex-wrap items-center gap-2 font-body text-xs text-ink/45">
+              {request.allowed_file_types && request.allowed_file_types.length > 0 && (
+                <span className="px-2 py-0.5 bg-muted border border-ink/10" style={{ borderRadius: '6px' }}>
+                  {request.allowed_file_types.map(t => t.toUpperCase()).join(', ')}
+                </span>
+              )}
+              {request.max_file_size_mb && (
+                <span className="px-2 py-0.5 bg-muted border border-ink/10" style={{ borderRadius: '6px' }}>
+                  Max {request.max_file_size_mb} MB
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Rejection reason */}
           {isRejected && displayData?.rejection_reason && (
             <div

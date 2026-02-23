@@ -455,9 +455,9 @@ function StepBasics({
                   <span
                     className="font-heading text-base text-ink px-2 py-0.5 bg-[#fffde7] border border-ink/20"
                     style={{ borderRadius: '20px' }}
-                    title="Müşteriye daha erken bir tarih göstererek kendinize nefes payı bırakın."
+                    title="Show the client an earlier date to give yourself breathing room."
                   >
-                    {form.buffer_days} gün
+                    {form.buffer_days} day{form.buffer_days !== 1 ? 's' : ''}
                   </span>
                 </div>
                 <input
@@ -474,10 +474,10 @@ function StepBasics({
                     style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px' }}
                   >
                     <span className="text-base mr-1">😉</span>
-                    <strong>Müşteriye söylenen:</strong> {clientDate(form.due_date, form.buffer_days)}{' '}
-                    &mdash; Gerçek deadline: {fmtIso(form.due_date)}<br />
+                    <strong>Client sees:</strong> {clientDate(form.due_date, form.buffer_days)}{' '}
+                    &mdash; Actual deadline: {fmtIso(form.due_date)}<br />
                     <span className="text-ink/50">
-                      {form.buffer_days} günlük nefes payı bıraktınız. Müşteri daha erken tarihi görüyor.
+                      {form.buffer_days}-day buffer active. Client sees an earlier deadline.
                     </span>
                   </div>
                 )}
@@ -929,9 +929,9 @@ function StepReview({ form, items }: { form: ProjectForm; items: AssetItem[] }) 
               <Calendar size={13} className="text-ink/40" />
               {(form.buffer_days ?? 0) > 0 ? (
                 <p className="font-body text-sm text-ink">
-                  <span className="font-semibold">Müşteriye Söylenen:</span>{' '}
+                  <span className="font-semibold">Client sees:</span>{' '}
                   {clientDate(form.due_date, form.buffer_days)}{' '}
-                  <span className="text-ink/45">(Gerçek: {fmtIso(form.due_date)})</span>
+                  <span className="text-ink/45">(Actual: {fmtIso(form.due_date)})</span>
                 </p>
               ) : (
                 <p className="font-body text-sm text-ink">Deadline: <strong>{form.due_date}</strong></p>

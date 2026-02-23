@@ -64,6 +64,7 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
   const [newTitle, setNewTitle] = useState('')
   const [newType, setNewType] = useState<'file' | 'text' | 'password' | 'multiple_choice' | 'url'>('file')
   const [saving, setSaving] = useState(false)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   async function addRequest() {
     if (!newTitle.trim()) return
@@ -97,6 +98,7 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
     const supabase = createClient() as any
     await supabase.from('asset_requests').delete().eq('id', id)
     setRequests((prev) => prev.filter((r) => r.id !== id))
+    setDeleteConfirmId(null)
     router.refresh()
   }
 
@@ -178,14 +180,36 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
             </div>
 
             {/* Delete */}
-            <button
-              onClick={() => deleteRequest(req.id)}
-              className="p-1.5 text-ink/25 hover:text-accent hover:bg-accent/10 transition-colors flex-shrink-0"
-              style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
-              title="Remove request"
-            >
-              <Trash2 size={13} />
-            </button>
+            {deleteConfirmId === req.id ? (
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <span className="font-body text-xs text-accent mr-1">Delete?</span>
+                <WobblyButton
+                  variant="primary"
+                  size="sm"
+                  className="!bg-accent !text-paper !text-[11px] !px-2 !py-0.5"
+                  onClick={() => deleteRequest(req.id)}
+                >
+                  Yes
+                </WobblyButton>
+                <WobblyButton
+                  variant="ghost"
+                  size="sm"
+                  className="!text-[11px] !px-2 !py-0.5"
+                  onClick={() => setDeleteConfirmId(null)}
+                >
+                  No
+                </WobblyButton>
+              </div>
+            ) : (
+              <button
+                onClick={() => setDeleteConfirmId(req.id)}
+                className="p-1.5 text-ink/25 hover:text-accent hover:bg-accent/10 transition-colors flex-shrink-0"
+                style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
+                title="Remove request"
+              >
+                <Trash2 size={13} />
+              </button>
+            )}
           </div>
         )
       })}

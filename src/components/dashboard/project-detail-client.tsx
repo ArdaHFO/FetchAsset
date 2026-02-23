@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, Download, Loader2, CheckCircle2, Clock, XCircle, AlertCircle } from 'lucide-react'
+import { WobblyButton } from '@/components/ui'
 import { AssetRequestList, type RequestWithSubmissions } from './asset-request-list'
 import { SubmissionDrawer } from './submission-drawer'
 import type { AssetRequest, Submission } from '@/lib/supabase/types'
@@ -64,8 +65,66 @@ export function ProjectDetailClient({
     return () => clearInterval(id)
   }, [fetchRequests])
 
+  // Status counts
+  const approvedCount = requests.filter(r => r.submissions?.[0]?.status === 'approved').length
+  const rejectedCount = requests.filter(r => r.submissions?.[0]?.status === 'rejected').length
+  const pendingCount  = requests.filter(r => r.submissions?.[0] && r.submissions[0].status !== 'approved' && r.submissions[0].status !== 'rejected').length
+  const awaitingCount = totalCount - submittedCount
+  const hasFiles = requests.some(r => r.submissions?.[0]?.file_path)
+
+  // Download all handler
+  const [downloading, setDownloading] = useState(false)
+  async function downloadAll() {
+    setDownloading(true)
+    try {
+      const res = await fetch(`/api/projects/${projectId}/download-all`)
+      if (!res.ok) return
+      const data = await res.json()
+      // Download each file via hidden link click
+      for (const file of data.files) {
+        if (file.url) {
+          const a = document.createElement('a')
+          a.href = file.url
+          a.download = file.fileName
+          a.style.display = 'none'
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          await new Promise(r => setTimeout(r, 300))
+        }
+      }
+    } catch { /* silent */ }
+    setDownloading(false)
+  }
+
   return (
     <>
+      {/* Status summary bar */}
+      {submittedCount > 0 && (
+        <div className="flex flex-wrap items-center gap-3 mb-4 font-body text-sm">
+          {approvedCount > 0 && (
+            <span className="flex items-center gap-1.5 text-green-600">
+              <CheckCircle2 size={14} /> {approvedCount} approved
+            </span>
+          )}
+          {pendingCount > 0 && (
+            <span className="flex items-center gap-1.5 text-blue">
+              <Clock size={14} /> {pendingCount} under review
+            </span>
+          )}
+          {rejectedCount > 0 && (
+            <span className="flex items-center gap-1.5 text-accent">
+              <XCircle size={14} /> {rejectedCount} needs revision
+            </span>
+          )}
+          {awaitingCount > 0 && (
+            <span className="flex items-center gap-1.5 text-ink/40">
+              <AlertCircle size={14} /> {awaitingCount} awaiting
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-heading text-xl text-ink">Asset Checklist</h2>
         <div className="flex items-center gap-3">
@@ -92,6 +151,24 @@ export function ProjectDetailClient({
         projectId={projectId}
         onOpenSubmission={handleOpenSubmission}
       />
+
+      {/* Download all files button */}
+      {hasFiles && (
+        <div className="mt-4">
+          <WobblyButton
+            variant="secondary"
+            size="sm"
+            onClick={downloadAll}
+            disabled={downloading}
+            className="flex items-center gap-2"
+          >
+            {downloading
+              ? <><Loader2 size={14} className="animate-spin" /> Downloading…</>
+              : <><Download size={14} /> Download all files</>
+            }
+          </WobblyButton>
+        </div>
+      )}
 
       {drawerReq && drawerSub && (
         <SubmissionDrawer

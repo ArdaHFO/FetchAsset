@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { X, FileIcon, Link2, AlignLeft, Key, ListChecks, CheckCircle2, XCircle, Loader2, MessageSquare } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import { X, FileIcon, Link2, AlignLeft, Key, ListChecks, CheckCircle2, XCircle, Loader2, MessageSquare, Eye, EyeOff, Copy, Check } from 'lucide-react'
 import { WobblyButton, WobblyCard } from '@/components/ui'
 import { AiAuditPanel } from './ai-audit-panel'
 import type { AssetRequest, Submission } from '@/lib/supabase/types'
@@ -42,6 +42,28 @@ export function SubmissionDrawer({ submission, request, onClose, onReviewComplet
   const [agencyNote, setAgencyNote] = useState(submission.agency_note ?? '')
   const [noteSaving, setNoteSaving] = useState(false)
   const [noteSaved, setNoteSaved] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [valueCopied, setValueCopied] = useState(false)
+
+  // ESC key closes drawer
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    // Prevent body scroll while drawer is open
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [onClose])
+
+  async function copyValue(text: string) {
+    await navigator.clipboard.writeText(text)
+    setValueCopied(true)
+    setTimeout(() => setValueCopied(false), 2000)
+  }
 
   const auditResult = currentSubmission.ai_audit_result
     ? (currentSubmission.ai_audit_result as unknown as AuditResult)
@@ -152,6 +174,18 @@ export function SubmissionDrawer({ submission, request, onClose, onReviewComplet
               {request.description && (
                 <p className="font-body text-xs text-ink/50 mt-0.5 leading-snug">{request.description}</p>
               )}
+              <div className="flex items-center gap-3 mt-1">
+                {currentSubmission.client_name && (
+                  <span className="font-body text-xs text-ink/45">
+                    by {currentSubmission.client_name}
+                  </span>
+                )}
+                <span className="font-body text-xs text-ink/35">
+                  {new Date(currentSubmission.created_at).toLocaleDateString('en-GB', {
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+                  })}
+                </span>
+              </div>
             </div>
           </div>
           <button
@@ -197,14 +231,34 @@ export function SubmissionDrawer({ submission, request, onClose, onReviewComplet
 
             {/* Text / password */}
             {(request.request_type === 'text' || request.request_type === 'password') && currentSubmission.value_text && (
-              <p
-                className="font-body text-sm text-ink bg-muted/40 px-3 py-2"
-                style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
-              >
-                {request.request_type === 'password'
-                  ? '••••••••'
-                  : currentSubmission.value_text}
-              </p>
+              <div className="flex items-center gap-2">
+                <p
+                  className="font-body text-sm text-ink bg-muted/40 px-3 py-2 flex-1 min-w-0"
+                  style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+                >
+                  {request.request_type === 'password' && !showPassword
+                    ? '••••••••••••'
+                    : currentSubmission.value_text}
+                </p>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {request.request_type === 'password' && (
+                    <button
+                      onClick={() => setShowPassword(p => !p)}
+                      className="p-1.5 text-ink/40 hover:text-ink transition-colors"
+                      title={showPassword ? 'Hide' : 'Reveal'}
+                    >
+                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => copyValue(currentSubmission.value_text!)}
+                    className="p-1.5 text-ink/40 hover:text-ink transition-colors"
+                    title="Copy to clipboard"
+                  >
+                    {valueCopied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+                  </button>
+                </div>
+              </div>
             )}
 
             {/* URL */}

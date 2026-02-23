@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Plus, FolderKanban, Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { WobblyButton } from '@/components/ui'
 import { ProjectCard } from '@/components/dashboard/project-card'
 
@@ -35,6 +36,39 @@ export default async function ProjectsPage({ searchParams }: PageProps) {
 
   const projectsResult = await dbQuery
   const projects = (projectsResult.data ?? []) as import('@/lib/supabase/types').Project[]
+
+  // Fetch progress for all projects
+  const admin = createAdminClient()
+  const projectIds = projects.map(p => p.id)
+  let progressMap: Record<string, { total: number; completed: number }> = {}
+
+  if (projectIds.length > 0) {
+    const { data: reqRows } = await (admin as any)
+      .from('asset_requests')
+      .select('id, project_id')
+      .in('project_id', projectIds)
+
+    const { data: subRows } = await (admin as any)
+      .from('submissions')
+      .select('asset_request_id, project_id')
+      .in('project_id', projectIds)
+
+    const requests = reqRows ?? []
+    const submissions = subRows ?? []
+
+    for (const pid of projectIds) {
+      const total = requests.filter((r: { project_id: string }) => r.project_id === pid).length
+      const submittedRequestIds = new Set(
+        submissions.filter((s: { project_id: string }) => s.project_id === pid).map((s: { asset_request_id: string }) => s.asset_request_id)
+      )
+      progressMap[pid] = { total, completed: submittedRequestIds.size }
+    }
+  }
+
+  const projectsWithProgress = projects.map(p => ({
+    ...p,
+    progress: progressMap[p.id] ?? { total: 0, completed: 0 },
+  }))
 
   return (
     <div className="flex flex-col gap-6 max-w-6xl">
@@ -100,7 +134,7 @@ export default async function ProjectsPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((project) => (
+          {projectsWithProgress.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
         </div>

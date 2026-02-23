@@ -12,11 +12,11 @@ import type { Project, ProjectStatus } from '@/lib/supabase/types'
 function computeClientDeadline(dueDateIso: string, bufferDays: number): string {
   const d = new Date(dueDateIso)
   d.setDate(d.getDate() - bufferDays)
-  return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
@@ -221,14 +221,14 @@ export function ProjectHeader({ project, magicUrl }: ProjectHeaderProps) {
               {(project.buffer_days ?? 0) > 0 ? (
                 <>
                   <p className="font-body text-sm text-ink">
-                    <span className="font-semibold">Müşteriye Söylenen:</span>{' '}
+                    <span className="font-semibold">Client sees:</span>{' '}
                     {computeClientDeadline(project.due_date, project.buffer_days ?? 0)}{' '}
-                    <span className="text-ink/45">(Gerçek: {fmtDate(project.due_date)})</span>
+                    <span className="text-ink/45">(Actual: {fmtDate(project.due_date)})</span>
                   </p>
                   <div className="flex items-center gap-1 mt-0.5">
                     <Info size={11} className="text-ink/35" />
                     <p className="font-body text-xs text-ink/45">
-                      {project.buffer_days} günlük buffer aktif — müşteri daha erken tarihi görüyor.
+                      {project.buffer_days}-day buffer active — client sees an earlier deadline.
                     </p>
                   </div>
                 </>
@@ -242,7 +242,7 @@ export function ProjectHeader({ project, magicUrl }: ProjectHeaderProps) {
                   className="inline-block mt-1 font-body text-xs px-2 py-0.5 bg-green-50 text-green-700 border border-green-200"
                   style={{ borderRadius: '255px' }}
                 >
-                  🔔 Nudger aktif
+                  🔔 Auto-reminders on
                 </span>
               )}
             </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Trash2, FileCheck2, FileX2, FileClock, File, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -55,6 +55,11 @@ interface AssetRequestListProps {
 export function AssetRequestList({ requests: initial, projectId, onOpenSubmission }: AssetRequestListProps) {
   const router = useRouter()
   const [requests, setRequests] = useState<RequestWithSubmissions[]>(initial)
+
+  // Sync from parent when initial prop changes (e.g. after polling)
+  useEffect(() => {
+    setRequests(initial)
+  }, [initial])
   const [adding, setAdding] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newType, setNewType] = useState<'file' | 'text' | 'password' | 'multiple_choice' | 'url'>('file')

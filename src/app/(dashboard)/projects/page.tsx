@@ -30,7 +30,7 @@ export default async function ProjectsPage({ searchParams }: PageProps) {
     dbQuery = dbQuery.eq('status', activeFilter)
   }
   if (query) {
-    dbQuery = dbQuery.ilike('name', `%${query}%`)
+    dbQuery = dbQuery.or(`title.ilike.%${query}%,client_name.ilike.%${query}%`)
   }
 
   const projectsResult = await dbQuery

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   ChevronDown,
   ChevronUp,
@@ -61,6 +61,8 @@ function RequestItem({
   fontBody,
   fontHeading,
   onDone,
+  liveStatus,
+  liveData,
 }: {
   request: AssetRequest
   existing: Submission | null
@@ -73,6 +75,15 @@ function RequestItem({
   fontBody?: string
   fontHeading?: string
   onDone?: (id: string) => void
+  liveStatus?: 'pending_review' | 'approved' | 'rejected' | null
+  liveData?: {
+    rejection_reason?: string | null
+    agency_note?: string | null
+    file_name?: string | null
+    file_size_bytes?: number | null
+    value_text?: string | null
+    client_note?: string | null
+  } | null
 }) {
   function getR(mul = 1): string {
     const intensity = wobbleIntensity * mul
@@ -94,6 +105,22 @@ function RequestItem({
   const [valueText, setValueText] = useState(existing?.value_text ?? '')
   const [clientNote, setClientNote] = useState(existing?.client_note ?? '')
   const [chosenChoice, setChosenChoice] = useState(existing?.value_text ?? '')
+  const [editing, setEditing] = useState(false)
+
+  // Sync from live polling data
+  useEffect(() => {
+    if (liveStatus && liveStatus !== submissionStatus) {
+      setSubmissionStatus(liveStatus)
+      setSubmitted(true)
+      if (liveStatus === 'rejected') {
+        setOpen(true)
+        setEditing(false)
+      }
+    }
+  }, [liveStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Use live data for display when available
+  const displayData = liveData ?? existing
 
   const cfg = REQUEST_TYPE_CONFIG[request.request_type] ?? REQUEST_TYPE_CONFIG.text
   const Icon = cfg.icon
@@ -124,6 +151,7 @@ function RequestItem({
       }
       setSubmitted(true)
       setSubmissionStatus('pending_review')
+      setEditing(false)
       setOpen(false)
       onDone?.(request.id)
     } catch {
@@ -135,6 +163,7 @@ function RequestItem({
   function onUploadSuccess() {
     setSubmitted(true)
     setSubmissionStatus('pending_review')
+    setEditing(false)
     setOpen(false)
     onDone?.(request.id)
   }
@@ -151,8 +180,8 @@ function RequestItem({
         : isRejected ? 'border-accent/50 bg-accent/5'
         : submitted  ? 'border-ink/20 bg-paper'
         : 'border-ink/30 bg-paper',
-        open && !submitted ? 'shadow-[4px_4px_0px_0px_#2d2d2d]' : '',
-        open && isRejected ? 'shadow-[4px_4px_0px_0px_#e63946]' : ''
+        open && isRejected ? 'shadow-[4px_4px_0px_0px_#e63946]'
+        : open && !isApproved && !isPending ? 'shadow-[4px_4px_0px_0px_#2d2d2d]' : ''
       )}
       style={{ borderRadius: getR(0.7), fontFamily: fontBody }}
     >
@@ -211,7 +240,7 @@ function RequestItem({
           {isPending && (
             <span className="font-body text-xs text-amber-500">⏳ Under review</span>
           )}
-          {submitted && existing?.agency_note && (
+          {submitted && displayData?.agency_note && (
             <span className="font-body text-xs text-blue/80 flex items-center gap-1">💬 Note from agency</span>
           )}
         </div>
@@ -231,8 +260,19 @@ function RequestItem({
       {/* Expanded form */}
       {open && (
         <div className="px-4 pb-5 pt-1 border-t border-ink/10 flex flex-col gap-4">
+          {/* Agency note */}
+          {displayData?.agency_note && (
+            <div
+              className="flex flex-col gap-1 px-4 py-3 border-2"
+              style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px', borderColor: accentColor + '40', background: accentColor + '08' }}
+            >
+              <p className="font-body text-xs font-semibold" style={{ color: accentColor }}>💬 Note from your agency</p>
+              <p className="font-body text-sm text-ink/80">{displayData.agency_note}</p>
+            </div>
+          )}
+
           {/* Rejection reason */}
-          {isRejected && existing?.rejection_reason && (
+          {isRejected && displayData?.rejection_reason && (
             <div
               className="flex items-start gap-2 px-4 py-3 bg-accent/8 border border-accent/30"
               style={{ borderRadius: '10px 3px 10px 3px / 3px 10px 3px 10px' }}
@@ -240,7 +280,7 @@ function RequestItem({
               <XCircle size={14} className="text-accent mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-body text-xs text-accent font-semibold mb-0.5">Feedback from agency</p>
-                <p className="font-body text-sm text-ink">{existing.rejection_reason}</p>
+                <p className="font-body text-sm text-ink">{displayData.rejection_reason}</p>
               </div>
             </div>
           )}
@@ -251,169 +291,211 @@ function RequestItem({
             </div>
           )}
 
-          {/* Description */}
-          {request.description && (
-            <p className="font-body text-sm text-ink/60">{request.description}</p>
-          )}
-
-          {/* File upload */}
-          {request.request_type === 'file' && (
-            <FileUploader
-              requestId={request.id}
-              projectId={projectId}
-              token={token}
-              clientName={clientName}
-              allowedTypes={request.allowed_file_types}
-              maxSizeMb={request.max_file_size_mb}
-              clientNote={clientNote}
-              onSuccess={onUploadSuccess}
-              onError={setError}
-              submitting={submitting}
-              setSubmitting={setSubmitting}
-            />
-          )}
-
-          {/* Text input */}
-          {request.request_type === 'text' && (
-            <textarea
-              rows={4}
-              value={valueText}
-              onChange={(e) => setValueText(e.target.value)}
-              placeholder={cfg.placeholder}
-              disabled={submitting}
-              className="w-full px-4 py-3 font-body text-sm text-ink bg-paper border-2 border-ink/40 outline-none focus:border-ink transition-all resize-none"
-              style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
-            />
-          )}
-
-          {/* URL input */}
-          {request.request_type === 'url' && (
-            <input
-              type="url"
-              value={valueText}
-              onChange={(e) => setValueText(e.target.value)}
-              placeholder={cfg.placeholder}
-              disabled={submitting}
-              className="w-full px-4 py-3 font-body text-sm text-ink bg-paper border-2 border-ink/40 outline-none focus:border-ink transition-all"
-              style={{ borderRadius: '220px 30px 220px 30px / 30px 220px 30px 220px' }}
-            />
-          )}
-
-          {/* Password/Token input */}
-          {request.request_type === 'password' && (
-            <input
-              type="password"
-              value={valueText}
-              onChange={(e) => setValueText(e.target.value)}
-              placeholder={cfg.placeholder}
-              disabled={submitting}
-              className="w-full px-4 py-3 font-body text-sm text-ink bg-paper border-2 border-ink/40 outline-none focus:border-ink transition-all"
-              style={{ borderRadius: '220px 30px 220px 30px / 30px 220px 30px 220px' }}
-            />
-          )}
-
-          {/* Multiple choice */}
-          {request.request_type === 'multiple_choice' && request.choices && (
+          {/* ── Submitted value preview (for approved/pending) ─── */}
+          {submitted && !isRejected && !editing && (
             <div className="flex flex-col gap-2">
-              {request.choices.map((choice) => (
-                <label
-                  key={choice}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-3 border-2 cursor-pointer transition-all',
-                    chosenChoice === choice
-                      ? 'text-white'
-                      : 'border-ink/25 hover:border-ink/50'
+              <p className="font-body text-xs text-ink/45 uppercase tracking-wide">Your submission</p>
+              {request.request_type === 'file' && displayData?.file_name && (
+                <div className="flex items-center gap-3 px-3 py-2 bg-muted/40" style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}>
+                  <Paperclip size={14} className="text-ink/50 flex-shrink-0" />
+                  <span className="font-body text-sm text-ink truncate">{displayData.file_name}</span>
+                  {displayData.file_size_bytes && (
+                    <span className="font-body text-xs text-ink/40 flex-shrink-0">
+                      {(displayData.file_size_bytes / 1024 / 1024).toFixed(1)} MB
+                    </span>
                   )}
+                </div>
+              )}
+              {request.request_type !== 'file' && displayData?.value_text && (
+                <div className="px-3 py-2 bg-muted/40" style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}>
+                  <p className="font-body text-sm text-ink">
+                    {request.request_type === 'password' ? '••••••••' : displayData.value_text}
+                  </p>
+                </div>
+              )}
+              {displayData?.client_note && (
+                <p className="font-body text-xs text-ink/50 italic">Note: {displayData.client_note}</p>
+              )}
+
+              {/* Edit button — only for pending_review (not approved) */}
+              {isPending && (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="self-start flex items-center gap-1.5 font-body text-xs text-ink/50 hover:text-ink transition-colors mt-1"
+                >
+                  <RefreshCw size={11} />
+                  Change submission
+                </button>
+              )}
+
+              {isApproved && (
+                <p className="font-body text-xs text-green-600 mt-1">
+                  ✅ This item has been approved — no changes needed.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* ── Editable form (for not-submitted, rejected, or editing) ─── */}
+          {(!submitted || isRejected || editing) && (
+            <>
+              {/* Description */}
+              {request.description && (
+                <p className="font-body text-sm text-ink/60">{request.description}</p>
+              )}
+
+              {/* File upload */}
+              {request.request_type === 'file' && (
+                <FileUploader
+                  requestId={request.id}
+                  projectId={projectId}
+                  token={token}
+                  clientName={clientName}
+                  allowedTypes={request.allowed_file_types}
+                  maxSizeMb={request.max_file_size_mb}
+                  clientNote={clientNote}
+                  onSuccess={onUploadSuccess}
+                  onError={setError}
+                  submitting={submitting}
+                  setSubmitting={setSubmitting}
+                />
+              )}
+
+              {/* Text input */}
+              {request.request_type === 'text' && (
+                <textarea
+                  rows={4}
+                  value={valueText}
+                  onChange={(e) => setValueText(e.target.value)}
+                  placeholder={cfg.placeholder}
+                  disabled={submitting}
+                  className="w-full px-4 py-3 font-body text-sm text-ink bg-paper border-2 border-ink/40 outline-none focus:border-ink transition-all resize-none"
+                  style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
+                />
+              )}
+
+              {/* URL input */}
+              {request.request_type === 'url' && (
+                <input
+                  type="url"
+                  value={valueText}
+                  onChange={(e) => setValueText(e.target.value)}
+                  placeholder={cfg.placeholder}
+                  disabled={submitting}
+                  className="w-full px-4 py-3 font-body text-sm text-ink bg-paper border-2 border-ink/40 outline-none focus:border-ink transition-all"
+                  style={{ borderRadius: '220px 30px 220px 30px / 30px 220px 30px 220px' }}
+                />
+              )}
+
+              {/* Password/Token input */}
+              {request.request_type === 'password' && (
+                <input
+                  type="password"
+                  value={valueText}
+                  onChange={(e) => setValueText(e.target.value)}
+                  placeholder={cfg.placeholder}
+                  disabled={submitting}
+                  className="w-full px-4 py-3 font-body text-sm text-ink bg-paper border-2 border-ink/40 outline-none focus:border-ink transition-all"
+                  style={{ borderRadius: '220px 30px 220px 30px / 30px 220px 30px 220px' }}
+                />
+              )}
+
+              {/* Multiple choice */}
+              {request.request_type === 'multiple_choice' && request.choices && (
+                <div className="flex flex-col gap-2">
+                  {request.choices.map((choice) => (
+                    <label
+                      key={choice}
+                      className={cn(
+                        'flex items-center gap-3 px-4 py-3 border-2 cursor-pointer transition-all',
+                        chosenChoice === choice
+                          ? 'text-white'
+                          : 'border-ink/25 hover:border-ink/50'
+                      )}
+                      style={{
+                        borderRadius: getR(0.5),
+                        borderColor: chosenChoice === choice ? accentColor : undefined,
+                        background: chosenChoice === choice ? accentColor : undefined,
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name={`choice-${request.id}`}
+                        value={choice}
+                        checked={chosenChoice === choice}
+                        onChange={() => setChosenChoice(choice)}
+                        className="hidden"
+                        disabled={submitting}
+                      />
+                      <span
+                        className={cn(
+                          'w-4 h-4 border-2 flex-shrink-0 flex items-center justify-center',
+                          chosenChoice === choice ? 'border-paper bg-paper' : 'border-ink/40'
+                        )}
+                        style={{ borderRadius: '50%' }}
+                      >
+                        {chosenChoice === choice && (
+                          <span className="w-2 h-2 bg-ink rounded-full" />
+                        )}
+                      </span>
+                      <span className="font-body text-sm">{choice}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              {/* Client note (for all non-file types) */}
+              {request.request_type !== 'file' && (
+                <input
+                  type="text"
+                  value={clientNote}
+                  onChange={(e) => setClientNote(e.target.value)}
+                  placeholder="Add a note (optional)…"
+                  disabled={submitting}
+                  className="w-full px-4 py-2 font-body text-xs text-ink/70 bg-muted/30 border border-ink/20 outline-none focus:border-ink/50 transition-all"
+                  style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+                />
+              )}
+
+              {/* Error */}
+              {error && (
+                <p className="font-body text-sm text-accent">{error}</p>
+              )}
+
+              {/* Submit button (non-file) — branded */}
+              {request.request_type !== 'file' && (
+                <button
+                  type="button"
+                  onClick={submitValue}
+                  disabled={
+                    submitting ||
+                    (request.request_type === 'multiple_choice' ? !chosenChoice : !valueText.trim())
+                  }
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 font-body font-bold text-white border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
-                    borderRadius: getR(0.5),
-                    borderColor: chosenChoice === choice ? accentColor : undefined,
-                    background: chosenChoice === choice ? accentColor : undefined,
+                    borderRadius: getR(0.8),
+                    background: accentColor,
+                    borderColor: accentColor,
+                    boxShadow: `3px 3px 0px 0px #2d2d2d`,
                   }}
                 >
-                  <input
-                    type="radio"
-                    name={`choice-${request.id}`}
-                    value={choice}
-                    checked={chosenChoice === choice}
-                    onChange={() => setChosenChoice(choice)}
-                    className="hidden"
-                    disabled={submitting}
-                  />
-                  <span
-                    className={cn(
-                      'w-4 h-4 border-2 flex-shrink-0 flex items-center justify-center',
-                      chosenChoice === choice ? 'border-paper bg-paper' : 'border-ink/40'
-                    )}
-                    style={{ borderRadius: '50%' }}
-                  >
-                    {chosenChoice === choice && (
-                      <span className="w-2 h-2 bg-ink rounded-full" />
-                    )}
-                  </span>
-                  <span className="font-body text-sm">{choice}</span>
-                </label>
-              ))}
-            </div>
-          )}
+                  {submitting
+                    ? <Loader2 size={14} className="animate-spin" />
+                    : <><Send size={14} />{editing ? 'Update' : 'Submit'}</>
+                  }
+                </button>
+              )}
 
-          {/* Client note (for all non-file types, shown below; for file, passed to uploader) */}
-          {request.request_type !== 'file' && (
-            <input
-              type="text"
-              value={clientNote}
-              onChange={(e) => setClientNote(e.target.value)}
-              placeholder="Add a note (optional)…"
-              disabled={submitting}
-              className="w-full px-4 py-2 font-body text-xs text-ink/70 bg-muted/30 border border-ink/20 outline-none focus:border-ink/50 transition-all"
-              style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
-            />
-          )}
-
-          {/* Error */}
-          {error && (
-            <p className="font-body text-sm text-accent">{error}</p>
-          )}
-
-          {/* Submit button (non-file) — branded */}
-          {request.request_type !== 'file' && (
-            <button
-              type="button"
-              onClick={submitValue}
-              disabled={
-                submitting ||
-                (request.request_type === 'multiple_choice' ? !chosenChoice : !valueText.trim())
-              }
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 font-body font-bold text-white border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                borderRadius: getR(0.8),
-                background: accentColor,
-                borderColor: accentColor,
-                boxShadow: `3px 3px 0px 0px #2d2d2d`,
-              }}
-            >
-              {submitting
-                ? <Loader2 size={14} className="animate-spin" />
-                : <><Send size={14} />Submit</>
-              }
-            </button>
-          )}
-
-          {/* Re-submit note */}
-          {submitted && (
-            <p className="font-body text-xs text-ink/40 text-center">
-              You can update your submission by submitting again.
-            </p>
-          )}
-
-          {/* Agency note */}
-          {existing?.agency_note && (
-            <div
-              className="flex flex-col gap-1 px-4 py-3 border-2"
-              style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px', borderColor: accentColor + '40', background: accentColor + '08' }}
-            >
-              <p className="font-body text-xs font-semibold" style={{ color: accentColor }}>💬 Note from your agency</p>
-              <p className="font-body text-sm text-ink/80">{existing.agency_note}</p>
-            </div>
+              {/* Cancel edit */}
+              {editing && (
+                <button
+                  onClick={() => setEditing(false)}
+                  className="font-body text-xs text-ink/40 hover:text-ink text-center transition-colors"
+                >
+                  Cancel
+                </button>
+              )}
+            </>
           )}
         </div>
       )}
@@ -444,6 +526,47 @@ export function PortalChecklist({
       Object.entries(submissionMap).map(([id, sub]) => [id, sub.status as 'pending_review' | 'approved' | 'rejected'])
     )
   )
+  const [liveSubmissions, setLiveSubmissions] = useState<Record<string, {
+    status: string
+    rejection_reason?: string | null
+    agency_note?: string | null
+    file_name?: string | null
+    file_size_bytes?: number | null
+    value_text?: string | null
+    client_note?: string | null
+  }>>(
+    () => Object.fromEntries(
+      Object.entries(submissionMap).map(([id, sub]) => [id, sub])
+    )
+  )
+
+  // Poll for status updates every 30s
+  const pollStatuses = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/portal/status?token=${encodeURIComponent(token)}&projectId=${encodeURIComponent(projectId)}`)
+      if (!res.ok) return
+      const data = await res.json()
+      if (!data.submissions) return
+      const newStatusMap: Record<string, 'pending_review' | 'approved' | 'rejected'> = {}
+      const newLive: Record<string, typeof liveSubmissions[string]> = {}
+      const newDoneIds: string[] = []
+      for (const sub of data.submissions as Array<{ asset_request_id: string; status: string; rejection_reason?: string | null; agency_note?: string | null; file_name?: string | null; file_size_bytes?: number | null; value_text?: string | null; client_note?: string | null }>) {
+        newStatusMap[sub.asset_request_id] = sub.status as 'pending_review' | 'approved' | 'rejected'
+        newLive[sub.asset_request_id] = sub
+        newDoneIds.push(sub.asset_request_id)
+      }
+      setStatusMap(newStatusMap)
+      setLiveSubmissions(newLive)
+      setDoneIds(newDoneIds)
+    } catch {
+      // Silent
+    }
+  }, [token, projectId])
+
+  useEffect(() => {
+    const id = setInterval(pollStatuses, 30_000)
+    return () => clearInterval(id)
+  }, [pollStatuses])
 
   function handleDone(id: string) {
     setDoneIds((prev) => prev.includes(id) ? prev : [...prev, id])
@@ -572,6 +695,8 @@ export function PortalChecklist({
           fontBody={fontBody}
           fontHeading={fontHeading}
           onDone={handleDone}
+          liveStatus={statusMap[req.id] ?? null}
+          liveData={liveSubmissions[req.id] ?? null}
         />
       ))}
     </div>

@@ -12,11 +12,11 @@ import type { PlanTier } from '@/lib/supabase/types'
 const PROMO_KEY = 'fetchasset_promo_code'
 const PLAN_ORDER: PlanTier[] = ['free', 'solo', 'pro', 'agency']
 
-const CARD_STYLES: Record<PlanTier, { radius: string; shadow: string }> = {
-  free:   { radius: '220px 30px 240px 20px / 25px 230px 20px 215px', shadow: '4px 4px 0 0 #2d2d2d' },
-  solo:   { radius: '245px 18px 200px 20px / 22px 210px 14px 240px', shadow: '4px 4px 0 0 #2d2d2d' },
-  pro:    { radius: '180px 45px 200px 35px / 40px 190px 30px 170px',  shadow: '6px 6px 0 0 #2d2d2d' },
-  agency: { radius: '240px 20px 220px 30px / 20px 215px 25px 230px',  shadow: '4px 4px 0 0 #2d2d2d' },
+const CARD_STYLES: Record<PlanTier, { radius: string; shadow: string; border: string }> = {
+  free:   { radius: '220px 30px 240px 20px / 25px 230px 20px 215px', shadow: '4px 4px 0 0 #2d2d2d', border: 'border-2 border-ink/70' },
+  solo:   { radius: '245px 18px 200px 20px / 22px 210px 14px 240px', shadow: '4px 4px 0 0 #2d2d2d', border: 'border-2 border-ink/70' },
+  pro:    { radius: '180px 45px 200px 35px / 40px 190px 30px 170px',  shadow: '6px 6px 0 0 #e63946', border: 'border-[3px] border-[#e63946]' },
+  agency: { radius: '240px 20px 220px 30px / 20px 215px 25px 230px',  shadow: '4px 4px 0 0 #2d2d2d', border: 'border-2 border-ink/70' },
 }
 
 export default function PricingContent() {
@@ -72,6 +72,24 @@ export default function PricingContent() {
           </h1>
           <p className="font-body text-base text-ink/60 max-w-sm mx-auto mt-3">
             Start free. Upgrade when you need more. No hidden fees.
+          </p>
+        </div>
+
+        {/* ── Launch banner ── */}
+        <div
+          className="max-w-lg mx-auto mb-8 px-5 py-3.5 flex items-center justify-center gap-2.5 bg-[#fff8e1] border-[3px] border-[#f5a623]" 
+          style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px', boxShadow: '4px 4px 0 0 #2d2d2d' }}
+        >
+          <span className="text-lg">🚀</span>
+          <p className="font-body text-sm text-ink font-bold text-center">
+            LAUNCH SPECIAL: Use code{' '}
+            <span
+              className="font-heading text-base text-[#e63946] px-1.5 py-0.5 bg-white border-2 border-[#e63946] mx-0.5"
+              style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+            >
+              FETCH50
+            </span>
+            {' '}for 50% OFF any plan!
           </p>
         </div>
 
@@ -146,21 +164,24 @@ export default function PricingContent() {
                 style={{ transform: isPro ? 'translateY(-10px)' : undefined }}
               >
                 {isPro && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-10">
                     <span
-                      className="font-body text-xs font-bold px-4 py-1 bg-ink text-paper whitespace-nowrap"
-                      style={{ borderRadius: '20px 4px 20px 4px / 4px 20px 4px 20px' }}
+                      className="font-heading text-sm font-bold px-5 py-1.5 bg-[#e63946] text-white whitespace-nowrap"
+                      style={{
+                        borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px',
+                        boxShadow: '3px 3px 0 0 #2d2d2d',
+                      }}
                     >
-                      ⭐ Most popular
+                      ✦ Most Popular
                     </span>
                   </div>
                 )}
 
                 <div
-                  className="h-full flex flex-col bg-paper border-2 border-ink overflow-hidden"
+                  className={`h-full flex flex-col bg-paper overflow-hidden ${style.border}`}
                   style={{ borderRadius: style.radius, boxShadow: style.shadow }}
                 >
-                  {isPro && <div className="h-1.5 bg-ink w-full" />}
+                  {isPro && <div className="h-1.5 bg-[#e63946] w-full" />}
 
                   <div className="flex flex-col flex-1 p-7">
                     <div className="mb-5">
@@ -184,19 +205,28 @@ export default function PricingContent() {
 
                     <ul className="flex flex-col gap-2.5 mb-7 flex-1">
                       {plan.features.map((feat) => (
-                        <li key={feat} className="flex items-start gap-2">
-                          <Check size={13} className="text-ink mt-0.5 flex-shrink-0" strokeWidth={3} />
-                          <span className="font-body text-sm text-ink/80">{feat}</span>
+                        <li key={feat} className="flex items-start gap-2.5">
+                          <Check
+                            size={15}
+                            className={`mt-0.5 flex-shrink-0 ${isPro || tier === 'agency' ? 'text-green-600' : 'text-ink/70'}`}
+                            strokeWidth={2.5}
+                          />
+                          <span className="font-body text-sm text-ink/85 leading-snug">{feat}</span>
                         </li>
                       ))}
                     </ul>
 
                     {tier === 'free' ? (
-                      <Link href="/login" className="block">
-                        <WobblyButton variant="secondary" size="md" className="w-full">
-                          Get started free
-                        </WobblyButton>
-                      </Link>
+                      <div>
+                        <Link href="/login" className="block">
+                          <WobblyButton variant="secondary" size="md" className="w-full">
+                            Get started free
+                          </WobblyButton>
+                        </Link>
+                        <p className="font-body text-[11px] text-ink/40 text-center mt-2">
+                          No credit card required. Start in 30 seconds.
+                        </p>
+                      </div>
                     ) : (
                       <CheckoutButton
                         tier={tier}

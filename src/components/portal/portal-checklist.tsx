@@ -306,21 +306,6 @@ function RequestItem({
             </div>
           )}
 
-          {/* Example / reference link */}
-          {request.example_url && !submitted && (
-            <div className="flex items-center gap-2 font-body text-xs">
-              <span className="text-ink/40">📎 Example:</span>
-              <a
-                href={request.example_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue hover:underline truncate"
-              >
-                {request.example_url}
-              </a>
-            </div>
-          )}
-
           {/* Rejection reason */}
           {isRejected && displayData?.rejection_reason && (
             <div

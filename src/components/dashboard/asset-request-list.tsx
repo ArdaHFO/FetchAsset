@@ -23,6 +23,14 @@ const TYPE_EMOJI: Record<string, string> = {
   multiple_choice: '☑️',
 }
 
+const FILE_TYPES = ['SVG', 'PNG', 'JPG', 'PDF', 'AI', 'EPS', 'DOCX', 'MP4', 'ZIP']
+const SIZE_OPTIONS = [
+  { label: '5 MB',   value: 5 },
+  { label: '50 MB',  value: 50 },
+  { label: '500 MB', value: 500 },
+  { label: '2 GB',   value: 2048 },
+]
+
 function getRowStatus(req: RequestWithSubmissions): SubmissionStatus {
   const sub = req.submissions?.[0]
   if (!sub) return 'pending'
@@ -61,33 +69,55 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
     setRequests(initial)
   }, [initial])
   const [adding, setAdding] = useState(false)
-  const [newTitle, setNewTitle] = useState('')
-  const [newType, setNewType] = useState<'file' | 'text' | 'password' | 'multiple_choice' | 'url'>('file')
-  const [newDescription, setNewDescription] = useState('')
-  const [newRequired, setNewRequired] = useState(true)
-  const [newAllowedTypes, setNewAllowedTypes] = useState('')
-  const [newMaxSizeMb, setNewMaxSizeMb] = useState('')
-  const [newMinWidth, setNewMinWidth] = useState('')
-  const [newMinHeight, setNewMinHeight] = useState('')
-  const [newCustomInstructions, setNewCustomInstructions] = useState('')
-  const [newChoices, setNewChoices] = useState('')
-  const [newExampleUrl, setNewExampleUrl] = useState('')
   const [saving, setSaving] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
-  function resetAddForm() {
+  // ── New request form state ────────────────────────────────
+  const [newTitle, setNewTitle] = useState('')
+  const [newType, setNewType] = useState<RequestType>('file')
+  const [newDescription, setNewDescription] = useState('')
+  const [newRequired, setNewRequired] = useState(true)
+  const [newAllowedTypes, setNewAllowedTypes] = useState<string[]>([])
+  const [newMaxSizeMb, setNewMaxSizeMb] = useState(50)
+  const [newMinWidth, setNewMinWidth] = useState('')
+  const [newMinHeight, setNewMinHeight] = useState('')
+  const [newCustomInstructions, setNewCustomInstructions] = useState('')
+  const [newNamingRule, setNewNamingRule] = useState(false)
+  const [newChoices, setNewChoices] = useState('')
+  const [customTypeInput, setCustomTypeInput] = useState('')
+  const [showCustomType, setShowCustomType] = useState(false)
+
+  function resetForm() {
     setNewTitle('')
+    setNewType('file')
     setNewDescription('')
     setNewRequired(true)
-    setNewType('file')
-    setNewAllowedTypes('')
-    setNewMaxSizeMb('')
+    setNewAllowedTypes([])
+    setNewMaxSizeMb(50)
     setNewMinWidth('')
     setNewMinHeight('')
     setNewCustomInstructions('')
+    setNewNamingRule(false)
     setNewChoices('')
-    setNewExampleUrl('')
+    setCustomTypeInput('')
+    setShowCustomType(false)
     setAdding(false)
+  }
+
+  function toggleFileType(type: string) {
+    setNewAllowedTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    )
+  }
+
+  function addCustomFileType() {
+    const val = customTypeInput.trim().toUpperCase().replace(/^\./, '')
+    if (!val) return
+    if (!newAllowedTypes.includes(val)) {
+      setNewAllowedTypes(prev => [...prev, val])
+    }
+    setCustomTypeInput('')
+    setShowCustomType(false)
   }
 
   async function addRequest() {
@@ -103,34 +133,25 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
       request_type: newType,
       required: newRequired,
       sort_order: requests.length,
+      description: newDescription.trim() || null,
+      custom_instructions: newCustomInstructions.trim() || null,
+      naming_rule: newNamingRule,
     }
-
-    if (newDescription.trim()) payload.description = newDescription.trim()
-    if (newCustomInstructions.trim()) payload.custom_instructions = newCustomInstructions.trim()
-    if (newExampleUrl.trim()) payload.example_url = newExampleUrl.trim()
 
     // File-specific fields
     if (newType === 'file') {
+      payload.allowed_file_types = newAllowedTypes.length > 0 ? newAllowedTypes : null
+      payload.max_file_size_mb = newMaxSizeMb
       const w = parseInt(newMinWidth, 10)
       const h = parseInt(newMinHeight, 10)
       if (!isNaN(w) && w > 0) payload.min_width = w
       if (!isNaN(h) && h > 0) payload.min_height = h
-      const sizeMb = parseInt(newMaxSizeMb, 10)
-      if (!isNaN(sizeMb) && sizeMb > 0) payload.max_file_size_mb = sizeMb
-      if (newAllowedTypes.trim()) {
-        payload.allowed_file_types = newAllowedTypes
-          .split(',')
-          .map((t) => t.trim().toLowerCase().replace(/^\./, ''))
-          .filter(Boolean)
-      }
     }
 
-    // Multiple choice options
-    if (newType === 'multiple_choice' && newChoices.trim()) {
-      payload.choices = newChoices
-        .split(',')
-        .map((c) => c.trim())
-        .filter(Boolean)
+    // Multiple choice
+    if (newType === 'multiple_choice') {
+      const parsed = newChoices.split('\n').map(c => c.trim()).filter(Boolean)
+      payload.choices = parsed.length > 0 ? parsed : null
     }
 
     const { data, error } = await supabase
@@ -141,7 +162,7 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
 
     if (!error && data) {
       setRequests((prev) => [...prev, { ...data, submissions: [] }])
-      resetAddForm()
+      resetForm()
     }
     setSaving(false)
     router.refresh()
@@ -221,15 +242,17 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
                 )}
                 {req.allowed_file_types && req.allowed_file_types.length > 0 && (
                   <span
-                    className="font-body text-[10px] px-1.5 py-0.5 bg-ink/5 text-ink/50"
+                    className="font-body text-[10px] px-1.5 py-0.5 bg-ink/5 text-ink/40 hidden sm:inline"
                     style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
                   >
-                    {req.allowed_file_types.map(t => t.toUpperCase()).join(', ')}
+                    {req.allowed_file_types.slice(0, 3).join(', ')}{req.allowed_file_types.length > 3 ? '…' : ''}
                   </span>
                 )}
               </div>
-              {req.description && (
-                <p className="font-body text-xs text-ink/50 mt-0.5 truncate">{req.description}</p>
+              {(req.description || req.custom_instructions) && (
+                <p className="font-body text-xs text-ink/50 mt-0.5 truncate">
+                  {req.description || req.custom_instructions}
+                </p>
               )}
             </div>
 
@@ -284,149 +307,257 @@ export function AssetRequestList({ requests: initial, projectId, onOpenSubmissio
         )
       })}
 
-      {/* Add new — expanded panel */}
+      {/* Add new — detailed form */}
       {adding && (
         <div
-          className="flex flex-col gap-3 p-4 border-2 border-ink/30 bg-muted/20"
-          style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
+          className="border-2 border-ink/40 bg-paper overflow-hidden"
+          style={{
+            borderRadius: '20px 5px 20px 5px / 5px 20px 5px 20px',
+            boxShadow: '4px 4px 0 0 #2d2d2d',
+          }}
         >
-          {/* Row 1: Type + Title */}
-          <div className="flex items-center gap-2">
-            <select
-              value={newType}
-              onChange={(e) => setNewType(e.target.value as RequestType)}
-              className="font-body text-xs text-ink bg-paper border border-ink/30 px-2 py-1.5 outline-none"
-              style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
-            >
-              {Object.entries(TYPE_EMOJI).map(([val, emoji]) => (
-                <option key={val} value={val}>
-                  {emoji} {val.replace('_', ' ')}
-                </option>
-              ))}
-            </select>
-            <input
-              autoFocus
-              type="text"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && newTitle.trim()) addRequest()
-                if (e.key === 'Escape') resetAddForm()
-              }}
-              placeholder="Asset name…  e.g. Logo Files"
-              className="flex-1 px-3 py-1.5 font-body text-sm text-ink bg-paper border border-ink/30 outline-none focus:border-ink transition-all"
-              style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
-            />
-            <label className="flex items-center gap-1.5 cursor-pointer flex-shrink-0">
-              <input
-                type="checkbox"
-                checked={newRequired}
-                onChange={(e) => setNewRequired(e.target.checked)}
-                className="accent-accent w-3.5 h-3.5"
-              />
-              <span className="font-body text-[11px] text-ink/60">Required</span>
-            </label>
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 bg-muted/30 border-b-2 border-dashed border-ink/10">
+            <span className="font-heading text-base text-ink">New Asset Request</span>
+            <div className="flex items-center gap-2">
+              <WobblyButton variant="primary" size="sm" loading={saving} onClick={addRequest} disabled={!newTitle.trim()}>
+                <Plus size={13} className="mr-1" /> Add
+              </WobblyButton>
+              <WobblyButton variant="ghost" size="sm" onClick={resetForm}>
+                Cancel
+              </WobblyButton>
+            </div>
           </div>
 
-          {/* Row 2: Description */}
-          <textarea
-            rows={2}
-            value={newDescription}
-            onChange={(e) => setNewDescription(e.target.value)}
-            placeholder="Description for the client… e.g. Please provide SVG and high-res PNG versions"
-            className="w-full px-3 py-2 font-body text-xs text-ink bg-paper border border-ink/20 outline-none focus:border-ink/40 transition-all resize-none"
-            style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
-          />
-
-          {/* File-specific fields */}
-          {newType === 'file' && (
-            <div className="flex flex-col gap-2 pl-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="text"
-                  value={newAllowedTypes}
-                  onChange={(e) => setNewAllowedTypes(e.target.value)}
-                  placeholder="Allowed types: png, svg, pdf"
-                  className="flex-1 min-w-[140px] px-2 py-1 font-body text-xs text-ink bg-paper border border-ink/20 outline-none focus:border-ink/40 transition-all"
-                  style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
-                />
-                <input
-                  type="number"
-                  min={1}
-                  value={newMaxSizeMb}
-                  onChange={(e) => setNewMaxSizeMb(e.target.value)}
-                  placeholder="Max MB"
-                  className="w-20 px-2 py-1 font-body text-xs text-ink bg-paper border border-ink/20 outline-none focus:border-ink/40 transition-all"
-                  style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-body text-[11px] text-ink/50">Min resolution:</span>
-                <input
-                  type="number"
-                  min={1}
-                  value={newMinWidth}
-                  onChange={(e) => setNewMinWidth(e.target.value)}
-                  placeholder="W px"
-                  className="w-16 px-2 py-1 font-body text-xs text-ink bg-paper border border-ink/20 outline-none focus:border-ink/40 transition-all"
-                  style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
-                />
-                <span className="font-body text-xs text-ink/30">×</span>
-                <input
-                  type="number"
-                  min={1}
-                  value={newMinHeight}
-                  onChange={(e) => setNewMinHeight(e.target.value)}
-                  placeholder="H px"
-                  className="w-16 px-2 py-1 font-body text-xs text-ink bg-paper border border-ink/20 outline-none focus:border-ink/40 transition-all"
-                  style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
-                />
-                <span className="font-body text-[10px] text-ink/35">(optional)</span>
-              </div>
+          <div className="flex flex-col gap-3 px-4 py-4">
+            {/* Type + Title row */}
+            <div className="flex gap-2">
+              <select
+                value={newType}
+                onChange={(e) => setNewType(e.target.value as RequestType)}
+                className="font-body text-xs text-ink bg-paper border-2 border-ink/40 px-2 py-1.5 outline-none"
+                style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
+              >
+                {Object.entries(TYPE_EMOJI).map(([val, emoji]) => (
+                  <option key={val} value={val}>
+                    {emoji} {val.replace('_', ' ')}
+                  </option>
+                ))}
+              </select>
+              <input
+                autoFocus
+                type="text"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newTitle.trim()) addRequest()
+                  if (e.key === 'Escape') resetForm()
+                }}
+                placeholder="Asset name…"
+                className="flex-1 min-w-0 px-3 py-1.5 font-body text-sm text-ink bg-paper border-2 border-ink/40 outline-none focus:border-ink transition-all"
+                style={{ borderRadius: '12px 3px 12px 3px / 3px 12px 3px 12px' }}
+              />
             </div>
-          )}
 
-          {/* Multiple choice options */}
-          {newType === 'multiple_choice' && (
-            <input
-              type="text"
-              value={newChoices}
-              onChange={(e) => setNewChoices(e.target.value)}
-              placeholder="Options (comma-separated): Option A, Option B, Option C"
-              className="w-full px-3 py-1.5 font-body text-xs text-ink bg-paper border border-ink/20 outline-none focus:border-ink/40 transition-all"
-              style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
-            />
-          )}
+            {/* Description */}
+            <div className="flex flex-col gap-1">
+              <label className="font-body text-xs text-ink/50 uppercase tracking-wider">Description</label>
+              <input
+                type="text"
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                placeholder="e.g. Please provide SVG and high-res PNG"
+                className="w-full px-3 py-1.5 font-body text-xs text-ink bg-paper border border-ink/25 outline-none focus:border-ink/50 transition-all"
+                style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+              />
+            </div>
 
-          {/* Custom instructions */}
-          <input
-            type="text"
-            value={newCustomInstructions}
-            onChange={(e) => setNewCustomInstructions(e.target.value)}
-            placeholder="💡 Custom instructions shown to client (optional)"
-            className="w-full px-3 py-1.5 font-body text-xs text-ink bg-paper border border-ink/20 outline-none focus:border-ink/40 transition-all"
-            style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
-          />
+            {/* File-specific fields */}
+            {newType === 'file' && (
+              <div className="flex flex-col gap-3">
+                {/* Allowed file types */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-body text-xs text-ink/50 uppercase tracking-wider">Allowed file types</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {FILE_TYPES.map((type) => {
+                      const selected = newAllowedTypes.includes(type)
+                      return (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => toggleFileType(type)}
+                          className={cn(
+                            'font-body text-xs px-2.5 py-1 border-2 transition-all',
+                            selected
+                              ? 'bg-ink text-paper border-ink'
+                              : 'bg-paper text-ink/50 border-ink/20 hover:border-ink/50'
+                          )}
+                          style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+                        >
+                          {selected && <span className="mr-1">✓</span>}{type}
+                        </button>
+                      )
+                    })}
 
-          {/* Example URL */}
-          <input
-            type="url"
-            value={newExampleUrl}
-            onChange={(e) => setNewExampleUrl(e.target.value)}
-            placeholder="🔗 Example/reference URL (optional)"
-            className="w-full px-3 py-1.5 font-body text-xs text-ink bg-paper border border-ink/20 outline-none focus:border-ink/40 transition-all"
-            style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
-          />
+                    {/* Custom file type badges */}
+                    {newAllowedTypes
+                      .filter(t => !FILE_TYPES.includes(t))
+                      .map(t => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setNewAllowedTypes(prev => prev.filter(x => x !== t))}
+                          className="font-body text-xs px-2.5 py-1 border-2 bg-[#7c3aed] text-white border-[#7c3aed]"
+                          style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+                          title="Click to remove"
+                        >
+                          .{t.toLowerCase()} ✕
+                        </button>
+                      ))
+                    }
 
-          {/* Actions */}
-          <div className="flex items-center gap-2 pt-1">
-            <WobblyButton variant="primary" size="sm" loading={saving} onClick={addRequest} disabled={!newTitle.trim()}>
-              <Plus size={13} className="mr-1" />
-              Add Request
-            </WobblyButton>
-            <WobblyButton variant="ghost" size="sm" onClick={resetAddForm}>
-              Cancel
-            </WobblyButton>
+                    {/* Add custom extension */}
+                    {showCustomType ? (
+                      <div className="flex items-center gap-1">
+                        <input
+                          autoFocus
+                          value={customTypeInput}
+                          onChange={e => setCustomTypeInput(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') addCustomFileType()
+                            if (e.key === 'Escape') { setShowCustomType(false); setCustomTypeInput('') }
+                          }}
+                          placeholder=".ext"
+                          className="w-20 px-2 py-1 border-2 border-ink/30 font-body text-xs outline-none focus:border-ink bg-paper"
+                          style={{ borderRadius: '8px' }}
+                        />
+                        <button type="button" onClick={addCustomFileType}
+                          className="font-body text-xs px-2 py-1 bg-ink text-paper border-2 border-ink"
+                          style={{ borderRadius: '8px' }}
+                        >Add</button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomType(true)}
+                        className="font-body text-xs px-2.5 py-1 border-2 border-dashed border-ink/30 text-ink/50 flex items-center gap-1 hover:border-ink hover:text-ink transition-colors"
+                        style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+                      >
+                        <Plus size={10} /> custom
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Size limit */}
+                <div className="flex items-center gap-2">
+                  <span className="font-body text-xs text-ink/50 w-20 flex-shrink-0">Max size</span>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {SIZE_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setNewMaxSizeMb(opt.value)}
+                        className={cn(
+                          'font-body text-xs px-2.5 py-1 border-2 transition-all',
+                          newMaxSizeMb === opt.value
+                            ? 'bg-ink text-paper border-ink'
+                            : 'bg-paper text-ink/50 border-ink/20 hover:border-ink/50'
+                        )}
+                        style={{ borderRadius: '255px 15px 225px 15px / 15px 225px 15px 255px' }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Resolution constraints */}
+                <div className="flex items-center gap-2">
+                  <span className="font-body text-xs text-ink/50 flex-shrink-0">Min resolution</span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={newMinWidth}
+                    onChange={(e) => setNewMinWidth(e.target.value)}
+                    placeholder="Width px"
+                    className="w-24 px-2 py-1 font-body text-xs text-ink bg-paper border border-ink/20 outline-none focus:border-ink/40 transition-all"
+                    style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
+                  />
+                  <span className="font-body text-xs text-ink/30">×</span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={newMinHeight}
+                    onChange={(e) => setNewMinHeight(e.target.value)}
+                    placeholder="Height px"
+                    className="w-24 px-2 py-1 font-body text-xs text-ink bg-paper border border-ink/20 outline-none focus:border-ink/40 transition-all"
+                    style={{ borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px' }}
+                  />
+                  <span className="font-body text-[10px] text-ink/35">(optional)</span>
+                </div>
+              </div>
+            )}
+
+            {/* Multiple choice options */}
+            {newType === 'multiple_choice' && (
+              <div className="flex flex-col gap-1">
+                <label className="font-body text-xs text-ink/50 uppercase tracking-wider">Choices (one per line)</label>
+                <textarea
+                  rows={3}
+                  value={newChoices}
+                  onChange={(e) => setNewChoices(e.target.value)}
+                  placeholder={"Option A\nOption B\nOption C"}
+                  className="w-full px-3 py-2 font-body text-xs text-ink bg-paper border border-ink/25 outline-none focus:border-ink/60 transition-all resize-none"
+                  style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+                />
+              </div>
+            )}
+
+            {/* Custom instructions */}
+            <div className="flex flex-col gap-1">
+              <label className="font-body text-xs text-ink/50 uppercase tracking-wider">Custom instructions for client</label>
+              <textarea
+                rows={2}
+                value={newCustomInstructions}
+                onChange={(e) => setNewCustomInstructions(e.target.value)}
+                placeholder="e.g. Must be vector format, transparent background"
+                className="w-full px-3 py-2 font-body text-xs text-ink bg-paper border border-ink/25 outline-none focus:border-ink/60 transition-all resize-none"
+                style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}
+              />
+            </div>
+
+            {/* Toggles */}
+            <div className="flex items-center gap-5 flex-wrap">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <div
+                  className={cn('relative border-2 border-ink transition-colors', newRequired ? 'bg-ink' : 'bg-paper')}
+                  style={{ borderRadius: '20px', width: 36, height: 20 }}
+                  onClick={() => setNewRequired(!newRequired)}
+                >
+                  <span
+                    className="absolute top-[2px] w-3.5 h-3.5 bg-paper border border-ink/30 transition-all"
+                    style={{ borderRadius: '50%', left: newRequired ? 'calc(100% - 17px)' : '2px' }}
+                  />
+                </div>
+                <span className="font-body text-sm text-ink/70">Required</span>
+              </label>
+              {newType === 'file' && (
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <div
+                    className={cn('relative border-2 border-ink transition-colors', newNamingRule ? 'bg-ink' : 'bg-paper')}
+                    style={{ borderRadius: '20px', width: 36, height: 20 }}
+                    onClick={() => setNewNamingRule(!newNamingRule)}
+                  >
+                    <span
+                      className="absolute top-[2px] w-3.5 h-3.5 bg-paper border border-ink/30 transition-all"
+                      style={{ borderRadius: '50%', left: newNamingRule ? 'calc(100% - 17px)' : '2px' }}
+                    />
+                  </div>
+                  <span className="font-body text-sm text-ink/70">Auto-rename file</span>
+                </label>
+              )}
+            </div>
           </div>
         </div>
       )}

@@ -518,6 +518,7 @@ export function PortalChecklist({
 }: PortalChecklistProps) {
   const [localClientName, setLocalClientName] = useState(clientName)
   const [nameSet, setNameSet] = useState(!!clientName)
+  const [liveRequests, setLiveRequests] = useState<AssetRequest[]>(requests)
   const [doneIds, setDoneIds] = useState<string[]>(
     () => Object.keys(submissionMap)
   )
@@ -558,6 +559,9 @@ export function PortalChecklist({
       setStatusMap(newStatusMap)
       setLiveSubmissions(newLive)
       setDoneIds(newDoneIds)
+      if (data.requests && Array.isArray(data.requests) && data.requests.length > 0) {
+        setLiveRequests(data.requests as AssetRequest[])
+      }
     } catch {
       // Silent
     }
@@ -573,7 +577,7 @@ export function PortalChecklist({
     setStatusMap((prev) => ({ ...prev, [id]: 'pending_review' }))
   }
 
-  const total = requests.length
+  const total = liveRequests.length
   const submitted = doneIds.length
   const pct = total > 0 ? Math.round((submitted / total) * 100) : 0
   const isDone = submitted === total && total > 0
@@ -681,7 +685,7 @@ export function PortalChecklist({
       })()}
 
       <h2 className="text-xl text-ink" style={{ fontFamily: fontHeading }}>Your asset list</h2>
-      {requests.map((req, idx) => (
+      {liveRequests.map((req, idx) => (
         <RequestItem
           key={req.id}
           request={req}

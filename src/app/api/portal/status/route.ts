@@ -33,7 +33,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ submissions: submissions ?? [] })
+    // Also fetch asset requests so portal can react to freelancer adding new items
+    const { data: assetRequests } = await (admin as any)
+      .from('asset_requests')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('sort_order', { ascending: true })
+
+    return NextResponse.json({ submissions: submissions ?? [], requests: assetRequests ?? [] })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

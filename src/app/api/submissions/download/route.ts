@@ -35,13 +35,13 @@ export async function GET(req: NextRequest) {
 
     const { data: signed, error } = await admin.storage
       .from(BUCKET)
-      .createSignedUrl(path, 60)
+      .createSignedUrl(path, 60, { download: sub.file_name ?? true })
 
     if (error || !signed?.signedUrl) {
       return NextResponse.json({ error: 'Could not generate download link' }, { status: 500 })
     }
 
-    // Redirect to the signed URL
+    // Redirect to the signed URL (Content-Disposition: attachment forces browser to download)
     return NextResponse.redirect(signed.signedUrl)
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

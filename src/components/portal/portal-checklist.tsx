@@ -588,7 +588,7 @@ export function PortalChecklist({
   // Poll for status updates every 30s
   const pollStatuses = useCallback(async () => {
     try {
-      const res = await fetch(`/api/portal/status?token=${encodeURIComponent(token)}&projectId=${encodeURIComponent(projectId)}`)
+      const res = await fetch(`/api/portal/status?token=${encodeURIComponent(token)}&projectId=${encodeURIComponent(projectId)}`, { cache: 'no-store' })
       if (!res.ok) return
       const data = await res.json()
       if (!data.submissions) return
@@ -612,6 +612,8 @@ export function PortalChecklist({
   }, [token, projectId])
 
   useEffect(() => {
+    // Poll immediately on mount so new requests added after initial render appear instantly
+    pollStatuses()
     const id = setInterval(pollStatuses, 30_000)
     return () => clearInterval(id)
   }, [pollStatuses])

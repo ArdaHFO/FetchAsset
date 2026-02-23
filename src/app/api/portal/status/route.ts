@@ -40,7 +40,10 @@ export async function GET(req: NextRequest) {
       .eq('project_id', projectId)
       .order('sort_order', { ascending: true })
 
-    return NextResponse.json({ submissions: submissions ?? [], requests: assetRequests ?? [] })
+    return NextResponse.json(
+      { submissions: submissions ?? [], requests: assetRequests ?? [] },
+      { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    )
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

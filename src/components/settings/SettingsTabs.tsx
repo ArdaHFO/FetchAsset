@@ -576,7 +576,7 @@ export default function SettingsTabs({
       {/* Branding tab */}
       {tab === 'branding' && (
         hasBranding ? (
-          <BrandingHub initial={branding} agencyName={agencyName} />
+          <BrandingHub initial={branding} agencyName={agencyName} plan={plan} />
         ) : (
           <div
             className="p-8 border-2 border-ink/15 text-center bg-muted/20"

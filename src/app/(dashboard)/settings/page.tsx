@@ -18,7 +18,7 @@ export default async function SettingsPage({
 
   const profileResult = await supabase
     .from('profiles')
-    .select('full_name, plan, stripe_subscription_status, stripe_customer_id, stripe_subscription_id, logo_url, brand_color, custom_welcome_msg, preferred_font, wobble_intensity')
+    .select('full_name, plan, stripe_subscription_status, stripe_customer_id, stripe_subscription_id, logo_url, brand_color, custom_welcome_msg, preferred_font, wobble_intensity, portal_bg_color, portal_card_color, agency_tagline, hide_branding')
     .eq('id', user.id)
     .single()
 
@@ -36,6 +36,10 @@ export default async function SettingsPage({
     custom_welcome_msg: profile?.custom_welcome_msg ?? '',
     preferred_font: (profile?.preferred_font as BrandingValues['preferred_font']) ?? 'sketchy',
     wobble_intensity: profile?.wobble_intensity ?? 50,
+    portal_bg_color: profile?.portal_bg_color ?? '#fdfbf7',
+    portal_card_color: profile?.portal_card_color ?? '#fff9c4',
+    agency_tagline: profile?.agency_tagline ?? '',
+    hide_branding: profile?.hide_branding ?? false,
   }
 
   return (

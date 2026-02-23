@@ -67,6 +67,10 @@ export interface Profile {
   custom_welcome_msg: string | null    // custom portal heading
   preferred_font: 'sketchy' | 'professional' | null  // portal font
   wobble_intensity: number | null      // 0–100, default 50
+  portal_bg_color: string | null       // portal background color
+  portal_card_color: string | null     // welcome card / sticky-note color
+  agency_tagline: string | null        // short tagline in portal header
+  hide_branding: boolean | null        // hide "Powered by FetchAsset" footer
 }
 
 export interface Project {

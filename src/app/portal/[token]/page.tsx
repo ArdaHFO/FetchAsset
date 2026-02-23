@@ -45,7 +45,7 @@ export default async function PortalPage({ params, searchParams }: PageProps) {
   // ── Fetch owner branding ───────────────────────────────────────
   const { data: profileRow } = await (admin as any)
     .from('profiles')
-    .select('full_name, plan, logo_url, brand_color, custom_welcome_msg, preferred_font, wobble_intensity')
+    .select('full_name, plan, logo_url, brand_color, custom_welcome_msg, preferred_font, wobble_intensity, portal_bg_color, portal_card_color, agency_tagline, hide_branding')
     .eq('id', project.owner_id)
     .single()
 
@@ -63,6 +63,10 @@ export default async function PortalPage({ params, searchParams }: PageProps) {
     (ownerProfile?.preferred_font as 'sketchy' | 'professional') ?? 'sketchy'
   const wobbleIntensity: number = ownerProfile?.wobble_intensity ?? 50
   const agencyName: string = ownerProfile?.full_name ?? 'FetchAsset'
+  const portalBgColor: string = (ownerProfile as any)?.portal_bg_color ?? '#fdfbf7'
+  const portalCardColor: string = (ownerProfile as any)?.portal_card_color ?? '#fff9c4'
+  const agencyTagline: string = (ownerProfile as any)?.agency_tagline ?? ''
+  const hideBranding: boolean = (ownerProfile as any)?.hide_branding ?? false
   const wobbleR = getWobblyRadius(wobbleIntensity)
 
   const fontHeading =
@@ -118,6 +122,7 @@ export default async function PortalPage({ params, searchParams }: PageProps) {
         projectTitle={project.title}
         clientName={project.client_name ?? ''}
         agencyName={agencyName}
+        agencyTagline={agencyTagline}
         brandColor={brandColor}
         logoUrl={logoUrl}
         welcomeMsg={welcomeMsg}
@@ -125,6 +130,8 @@ export default async function PortalPage({ params, searchParams }: PageProps) {
         fontHeading={fontHeading}
         fontBody={fontBody}
         wobbleR={wobbleR}
+        portalBgColor={portalBgColor}
+        portalCardColor={portalCardColor}
       />
     )
   }
@@ -132,12 +139,12 @@ export default async function PortalPage({ params, searchParams }: PageProps) {
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{ fontFamily: fontBody } as React.CSSProperties}
+      style={{ fontFamily: fontBody, background: portalBgColor } as React.CSSProperties}
     >
       {/* ── Top bar ──────────────────────────────────────────────── */}
       <header
         className="sticky top-0 z-30 flex items-center justify-between px-5 py-3 border-b-2 border-ink/10"
-        style={{ background: 'rgba(253,251,247,0.96)', backdropFilter: 'blur(8px)' }}
+        style={{ background: portalBgColor + 'f5', backdropFilter: 'blur(8px)' }}
       >
         <div className="flex items-center gap-3">
           {logoUrl ? (
@@ -148,14 +155,24 @@ export default async function PortalPage({ params, searchParams }: PageProps) {
               className="h-9 w-auto object-contain max-w-[160px]"
             />
           ) : (
-            <span
-              className="select-none"
-              style={{ fontFamily: fontHeading, fontSize: '22px', fontWeight: 700, color: '#2d2d2d' }}
-            >
-              {agencyName === 'FetchAsset' ? (
-                <>Fetch<span style={{ color: brandColor }}>Asset</span></>
-              ) : agencyName}
-            </span>
+            <div className="flex flex-col">
+              <span
+                className="select-none"
+                style={{ fontFamily: fontHeading, fontSize: '22px', fontWeight: 700, color: '#2d2d2d' }}
+              >
+                {agencyName === 'FetchAsset' ? (
+                  <>Fetch<span style={{ color: brandColor }}>Asset</span></>
+                ) : agencyName}
+              </span>
+              {agencyTagline && (
+                <span
+                  className="font-body text-xs font-semibold"
+                  style={{ color: brandColor, fontSize: '11px', lineHeight: 1 }}
+                >
+                  {agencyTagline}
+                </span>
+              )}
+            </div>
           )}
         </div>
 
@@ -177,11 +194,12 @@ export default async function PortalPage({ params, searchParams }: PageProps) {
 
         {/* Project greeting card */}
         <div
-          className="p-6 border-2 border-ink/20 bg-postit"
+          className="p-6 border-2 border-ink/20"
           style={{
             borderRadius: wobbleR,
             boxShadow: '4px 4px 0px 0px #2d2d2d',
             transform: 'rotate(-0.5deg)',
+            background: portalCardColor,
           }}
         >
           <p className="text-xs text-ink/50 uppercase tracking-wider mb-1" style={{ fontFamily: fontBody }}>
@@ -233,9 +251,9 @@ export default async function PortalPage({ params, searchParams }: PageProps) {
       {/* ── Footer ───────────────────────────────────────────────── */}
       <footer
         className="py-5 text-center border-t-2 border-ink/10"
-        style={{ background: 'rgba(253,251,247,0.8)' }}
+        style={{ background: portalBgColor + 'cc' }}
       >
-        {!isPaidPlan ? (
+        {!isPaidPlan || !hideBranding ? (
           <p className="text-xs text-ink/30" style={{ fontFamily: fontBody }}>
             Powered by{' '}
             <a href="https://fetchasset.com" target="_blank" rel="noreferrer" className="hover:text-ink/60 transition-colors">

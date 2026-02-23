@@ -9,6 +9,7 @@ interface PortalLandingProps {
   projectTitle: string
   clientName: string          // pre-filled from project (editable)
   agencyName: string
+  agencyTagline: string
   brandColor: string
   logoUrl: string | null
   welcomeMsg: string
@@ -16,6 +17,8 @@ interface PortalLandingProps {
   fontHeading: string
   fontBody: string
   wobbleR: string
+  portalBgColor: string
+  portalCardColor: string
 }
 
 const localKey = (token: string) => `fetchasset_portal_name_${token}`
@@ -24,6 +27,7 @@ export default function PortalLanding({
   token,
   clientName,
   agencyName,
+  agencyTagline,
   brandColor,
   logoUrl,
   welcomeMsg,
@@ -31,6 +35,8 @@ export default function PortalLanding({
   fontHeading,
   fontBody,
   wobbleR,
+  portalBgColor,
+  portalCardColor,
 }: PortalLandingProps) {
   const router = useRouter()
   const [name, setName] = useState(clientName)
@@ -54,13 +60,13 @@ export default function PortalLanding({
   // Show loading screen while auto-redirecting
   if (redirecting) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ fontFamily: fontBody }}>
+      <div className="min-h-screen flex flex-col" style={{ fontFamily: fontBody, background: portalBgColor }}>
         {/* Top bar */}
         <header
           className="sticky top-0 z-30 flex items-center justify-between px-5 py-3 border-b-2 border-ink/10"
-          style={{ background: 'rgba(253,251,247,0.96)', backdropFilter: 'blur(8px)' }}
+          style={{ background: portalBgColor + 'f5', backdropFilter: 'blur(8px)' }}
         >
-          <div>
+          <div className="flex flex-col">
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={logoUrl} alt={agencyName} className="h-9 w-auto object-contain max-w-[160px]" />
@@ -69,6 +75,11 @@ export default function PortalLanding({
                 {agencyName === 'FetchAsset'
                   ? <><span>Fetch</span><span style={{ color: brandColor }}>Asset</span></>
                   : agencyName}
+              </span>
+            )}
+            {agencyTagline && (
+              <span className="font-body text-xs font-semibold" style={{ color: brandColor, fontSize: '11px', lineHeight: 1 }}>
+                {agencyTagline}
               </span>
             )}
           </div>
@@ -107,13 +118,13 @@ export default function PortalLanding({
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ fontFamily: fontBody }}>
+    <div className="min-h-screen flex flex-col" style={{ fontFamily: fontBody, background: portalBgColor }}>
       {/* Top bar */}
       <header
         className="sticky top-0 z-30 flex items-center justify-between px-5 py-3 border-b-2 border-ink/10"
-        style={{ background: 'rgba(253,251,247,0.96)', backdropFilter: 'blur(8px)' }}
+        style={{ background: portalBgColor + 'f5', backdropFilter: 'blur(8px)' }}
       >
-        <div>
+        <div className="flex flex-col">
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt={agencyName} className="h-9 w-auto object-contain max-w-[160px]" />
@@ -122,6 +133,11 @@ export default function PortalLanding({
               {agencyName === 'FetchAsset'
                 ? <><span>Fetch</span><span style={{ color: brandColor }}>Asset</span></>
                 : agencyName}
+            </span>
+          )}
+          {agencyTagline && (
+            <span className="font-body text-xs font-semibold" style={{ color: brandColor, fontSize: '11px', lineHeight: 1 }}>
+              {agencyTagline}
             </span>
           )}
         </div>
@@ -134,11 +150,12 @@ export default function PortalLanding({
 
           {/* Welcome card */}
           <div
-            className="p-7 border-2 border-ink/20 bg-postit"
+            className="p-7 border-2 border-ink/20"
             style={{
               borderRadius: wobbleR,
               boxShadow: '5px 5px 0px 0px #2d2d2d',
               transform: 'rotate(-0.5deg)',
+              background: portalCardColor,
             }}
           >
             <p className="text-xs text-ink/45 uppercase tracking-wider mb-2" style={{ fontFamily: fontBody }}>
@@ -207,7 +224,7 @@ export default function PortalLanding({
         </div>
       </main>
 
-      <footer className="py-4 text-center border-t-2 border-ink/10" style={{ background: 'rgba(253,251,247,0.8)' }}>
+      <footer className="py-4 text-center border-t-2 border-ink/10" style={{ background: portalBgColor + 'cc' }}>
         <p className="text-xs text-ink/25" style={{ fontFamily: fontBody }}>
           Your files are encrypted in transit and at rest. 🔒
         </p>

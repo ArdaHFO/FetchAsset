@@ -13,7 +13,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('logo_url, brand_color, custom_welcome_msg, preferred_font, wobble_intensity, full_name, white_label_company_name')
+    .select('logo_url, brand_color, custom_welcome_msg, preferred_font, wobble_intensity, full_name, white_label_company_name, portal_bg_color, portal_card_color, agency_tagline, hide_branding')
     .eq('id', user.id)
     .single()
 
@@ -31,7 +31,7 @@ export async function PATCH(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const allowed = ['logo_url', 'brand_color', 'custom_welcome_msg', 'preferred_font', 'wobble_intensity']
+  const allowed = ['logo_url', 'brand_color', 'custom_welcome_msg', 'preferred_font', 'wobble_intensity', 'portal_bg_color', 'portal_card_color', 'agency_tagline', 'hide_branding']
   const update: Record<string, unknown> = {}
   for (const key of allowed) {
     if (key in body) update[key] = body[key]

@@ -2,9 +2,10 @@
 
 import { useCallback, useRef, useState, useTransition } from 'react'
 import Image from 'next/image'
-import { UploadCloud, Palette, Type, Sliders, Eye, Check, Loader2, X } from 'lucide-react'
+import { UploadCloud, Palette, Type, Sliders, Eye, Check, Loader2, X, Lock, EyeOff, AlignLeft, Layers } from 'lucide-react'
 import { WobblyButton, WobblyCard, WobblyCardContent } from '@/components/ui'
 import { cn } from '@/lib/utils'
+import type { PlanTier } from '@/lib/supabase/types'
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -14,11 +15,16 @@ export interface BrandingValues {
   custom_welcome_msg: string
   preferred_font: 'sketchy' | 'professional'
   wobble_intensity: number
+  portal_bg_color: string
+  portal_card_color: string
+  agency_tagline: string
+  hide_branding: boolean
 }
 
 interface BrandingHubProps {
   initial: BrandingValues
   agencyName: string
+  plan: PlanTier
 }
 
 // ── Preset accent colors ──────────────────────────────────────────
@@ -28,7 +34,27 @@ const COLOR_PRESETS = [
   '#f4a261', '#6a4c93', '#1a936f', '#3a3a3a',
 ]
 
-// ── Wobble radius helper (scales with intensity) ──────────────────
+const BG_PRESETS = [
+  { color: '#fdfbf7', label: 'Paper (default)' },
+  { color: '#ffffff', label: 'White' },
+  { color: '#f5f5f4', label: 'Stone' },
+  { color: '#fef9f0', label: 'Cream' },
+  { color: '#f0f9ff', label: 'Sky' },
+  { color: '#f0fdf4', label: 'Mint' },
+  { color: '#fdf4ff', label: 'Lavender' },
+  { color: '#1e1e1e', label: 'Dark' },
+]
+
+const CARD_PRESETS = [
+  { color: '#fff9c4', label: 'Yellow (default)' },
+  { color: '#fce7f3', label: 'Pink' },
+  { color: '#dbeafe', label: 'Blue' },
+  { color: '#d1fae5', label: 'Green' },
+  { color: '#fef3c7', label: 'Amber' },
+  { color: '#e0e7ff', label: 'Indigo' },
+  { color: '#f5f5f5', label: 'Gray' },
+  { color: '#ffffff', label: 'White' },
+]
 
 function getWobblyRadius(intensity: number): string {
   if (intensity < 10) return '6px'
@@ -42,7 +68,7 @@ function getWobblyRadius(intensity: number): string {
   return `${a}px ${b}px ${c}px ${d}px / ${e}px ${f}px ${b}px ${a}px`
 }
 
-// ── Mini Portal Preview ───────────────────────────────────────────
+// ── Wobble radius helper (scales with intensity) ──────────────────
 
 function PortalPreview({ brand, agencyName }: { brand: BrandingValues; agencyName: string }) {
   const r = getWobblyRadius(brand.wobble_intensity)
@@ -56,33 +82,44 @@ function PortalPreview({ brand, agencyName }: { brand: BrandingValues; agencyNam
       ? "'Inter', 'Roboto', sans-serif"
       : "'Patrick Hand', cursive"
 
+  const isDark = brand.portal_bg_color === '#1e1e1e'
+  const textColor = isDark ? '#e8e8e8' : '#2d2d2d'
+  const subTextColor = isDark ? '#9ca3af' : '#6b7280'
+
   return (
     <div
-      className="w-[340px] h-[460px] overflow-hidden bg-[#fdfbf7] border-2 border-ink/20 relative select-none"
-      style={{ borderRadius: '12px', fontFamily: bodyFont }}
+      className="w-[340px] h-[490px] overflow-hidden border-2 border-ink/20 relative select-none"
+      style={{ borderRadius: '12px', fontFamily: bodyFont, background: brand.portal_bg_color }}
     >
       {/* Graph-paper dots */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-30"
+        className="absolute inset-0 pointer-events-none opacity-20"
         style={{
-          backgroundImage: 'radial-gradient(circle, #2d2d2d 0.8px, transparent 0.8px)',
+          backgroundImage: `radial-gradient(circle, ${textColor} 0.8px, transparent 0.8px)`,
           backgroundSize: '18px 18px',
         }}
       />
 
       {/* Top bar */}
       <div
-        className="relative flex items-center justify-between px-4 py-3 border-b-2 border-ink/10"
-        style={{ background: '#fdfbf7' }}
+        className="relative flex items-start justify-between px-4 py-3 border-b-2"
+        style={{ background: brand.portal_bg_color + 'f5', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(45,45,45,0.1)' }}
       >
-        {brand.logo_url ? (
-          <img src={brand.logo_url} alt="Logo" className="h-7 w-auto object-contain max-w-[120px]" />
-        ) : (
-          <span style={{ fontFamily, fontSize: '15px', fontWeight: 700, color: '#2d2d2d' }}>
-            {agencyName || 'Your Agency'}
-          </span>
-        )}
-        <span style={{ fontSize: '9px', color: '#9ca3af', fontFamily: bodyFont }}>Secure portal</span>
+        <div className="flex flex-col">
+          {brand.logo_url ? (
+            <img src={brand.logo_url} alt="Logo" className="h-7 w-auto object-contain max-w-[120px]" />
+          ) : (
+            <span style={{ fontFamily, fontSize: '15px', fontWeight: 700, color: textColor }}>
+              {agencyName || 'Your Agency'}
+            </span>
+          )}
+          {brand.agency_tagline && (
+            <span style={{ fontSize: '8px', color: brand.brand_color, fontFamily: bodyFont, marginTop: '1px', fontWeight: 600 }}>
+              {brand.agency_tagline}
+            </span>
+          )}
+        </div>
+        <span style={{ fontSize: '9px', color: subTextColor, fontFamily: bodyFont, marginTop: '2px' }}>🔒 Secure</span>
       </div>
 
       {/* Content */}
@@ -93,17 +130,17 @@ function PortalPreview({ brand, agencyName }: { brand: BrandingValues; agencyNam
           style={{
             borderRadius: r,
             boxShadow: `3px 3px 0px 0px ${shadowColor}`,
-            background: '#fff9c4',
+            background: brand.portal_card_color,
             transform: 'rotate(-0.5deg)',
           }}
         >
-          <p style={{ fontSize: '8px', color: '#6b7280', fontFamily: bodyFont, marginBottom: 2 }}>
+          <p style={{ fontSize: '8px', color: subTextColor, fontFamily: bodyFont, marginBottom: 2 }}>
             Asset Collection Portal
           </p>
-          <p style={{ fontSize: '13px', fontFamily, color: '#2d2d2d', fontWeight: 700, lineHeight: 1.2 }}>
+          <p style={{ fontSize: '13px', fontFamily, color: textColor, fontWeight: 700, lineHeight: 1.2 }}>
             {brand.custom_welcome_msg || 'Welcome! Please upload your files'}
           </p>
-          <p style={{ fontSize: '9px', color: '#9ca3af', fontFamily: bodyFont, marginTop: 4 }}>
+          <p style={{ fontSize: '9px', color: subTextColor, fontFamily: bodyFont, marginTop: 4 }}>
             📅 Deadline: March 15, 2026
           </p>
         </div>
@@ -111,12 +148,12 @@ function PortalPreview({ brand, agencyName }: { brand: BrandingValues; agencyNam
         {/* Progress bar */}
         <div>
           <div className="flex justify-between mb-1">
-            <span style={{ fontSize: '8px', color: '#6b7280', fontFamily: bodyFont }}>1 of 3 submitted</span>
-            <span style={{ fontSize: '8px', color: '#2d2d2d', fontFamily: bodyFont }}>33%</span>
+            <span style={{ fontSize: '8px', color: subTextColor, fontFamily: bodyFont }}>1 of 3 submitted</span>
+            <span style={{ fontSize: '8px', color: textColor, fontFamily: bodyFont }}>33%</span>
           </div>
           <div
-            className="h-2 w-full bg-[#e5e0d8] overflow-hidden"
-            style={{ borderRadius: '8px 1px 8px 1px / 1px 8px 1px 8px' }}
+            className="h-2 w-full overflow-hidden"
+            style={{ borderRadius: '8px 1px 8px 1px / 1px 8px 1px 8px', background: isDark ? 'rgba(255,255,255,0.1)' : '#e5e0d8' }}
           >
             <div
               className="h-full transition-all"
@@ -133,22 +170,26 @@ function PortalPreview({ brand, agencyName }: { brand: BrandingValues; agencyNam
         ].map((r2, i) => (
           <div
             key={i}
-            className="flex items-center gap-2 px-3 py-2 bg-white border border-ink/15"
-            style={{ borderRadius: getWobblyRadius(brand.wobble_intensity * 0.6) }}
+            className="flex items-center gap-2 px-3 py-2 border"
+            style={{
+              borderRadius: getWobblyRadius(brand.wobble_intensity * 0.6),
+              background: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff',
+              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(45,45,45,0.15)',
+            }}
           >
             <div
               className="w-4 h-4 flex-shrink-0 flex items-center justify-center"
               style={{
                 borderRadius: '50%',
                 background: r2.done ? brand.brand_color : 'transparent',
-                border: `1.5px solid ${r2.done ? brand.brand_color : '#d1d5db'}`,
+                border: `1.5px solid ${r2.done ? brand.brand_color : (isDark ? '#4b5563' : '#d1d5db')}`,
               }}
             >
               {r2.done && <span style={{ fontSize: '8px', color: '#fff' }}>✓</span>}
             </div>
             <div className="flex-1 min-w-0">
-              <p style={{ fontSize: '9px', fontWeight: 600, color: '#2d2d2d', fontFamily: bodyFont }}>{r2.label}</p>
-              <p style={{ fontSize: '7px', color: '#9ca3af', fontFamily: bodyFont }}>{r2.types}</p>
+              <p style={{ fontSize: '9px', fontWeight: 600, color: textColor, fontFamily: bodyFont }}>{r2.label}</p>
+              <p style={{ fontSize: '7px', color: subTextColor, fontFamily: bodyFont }}>{r2.types}</p>
             </div>
             {!r2.done && (
               <div
@@ -167,9 +208,11 @@ function PortalPreview({ brand, agencyName }: { brand: BrandingValues; agencyNam
         ))}
 
         {/* Powered by */}
-        <p style={{ fontSize: '7px', color: '#c4c4c4', textAlign: 'center', fontFamily: bodyFont, marginTop: 2 }}>
-          Powered by FetchAsset
-        </p>
+        {!brand.hide_branding && (
+          <p style={{ fontSize: '7px', color: isDark ? '#4b5563' : '#c4c4c4', textAlign: 'center', fontFamily: bodyFont, marginTop: 2 }}>
+            Powered by FetchAsset
+          </p>
+        )}
       </div>
     </div>
   )
@@ -177,7 +220,7 @@ function PortalPreview({ brand, agencyName }: { brand: BrandingValues; agencyNam
 
 // ── Main BrandingHub Component ────────────────────────────────────
 
-export default function BrandingHub({ initial, agencyName }: BrandingHubProps) {
+export default function BrandingHub({ initial, agencyName, plan }: BrandingHubProps) {
   const [brand, setBrand] = useState<BrandingValues>(initial)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -236,6 +279,10 @@ export default function BrandingHub({ initial, agencyName }: BrandingHubProps) {
           custom_welcome_msg: brand.custom_welcome_msg,
           preferred_font: brand.preferred_font,
           wobble_intensity: brand.wobble_intensity,
+          portal_bg_color: brand.portal_bg_color,
+          portal_card_color: brand.portal_card_color,
+          agency_tagline: brand.agency_tagline,
+          hide_branding: brand.hide_branding,
         }),
       })
       const json = await res.json()
@@ -449,6 +496,155 @@ export default function BrandingHub({ initial, agencyName }: BrandingHubProps) {
           <p className="font-body text-xs text-ink/35">
             Controls the hand-drawn, wobbly border curvature on portal cards and buttons.
           </p>
+        </div>
+
+        {/* Portal background color */}
+        <div className="flex flex-col gap-2">
+          <label className="font-body text-xs text-ink/50 uppercase tracking-wider flex items-center gap-1.5">
+            <Layers size={13} /> Portal Background
+          </label>
+          <div className="flex items-center gap-2 flex-wrap">
+            {BG_PRESETS.map((p) => (
+              <button
+                key={p.color}
+                type="button"
+                title={p.label}
+                onClick={() => set('portal_bg_color', p.color)}
+                className="w-8 h-8 border-2 transition-all"
+                style={{
+                  background: p.color,
+                  borderColor: brand.portal_bg_color === p.color ? '#2d2d2d' : '#d1d5db',
+                  borderRadius: '6px 2px 6px 2px / 2px 6px 2px 6px',
+                  boxShadow: brand.portal_bg_color === p.color ? '2px 2px 0 0 #2d2d2d' : 'none',
+                  transform: brand.portal_bg_color === p.color ? 'translate(-1px,-1px)' : 'none',
+                }}
+              />
+            ))}
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={brand.portal_bg_color}
+                onChange={(e) => set('portal_bg_color', e.target.value)}
+                className="w-8 h-8 border-2 border-ink/30 cursor-pointer"
+                style={{ borderRadius: '6px', padding: '1px' }}
+                title="Custom background color"
+              />
+              <span
+                className="font-body text-sm text-ink/70 px-2 py-0.5 border border-ink/20"
+                style={{ borderRadius: '4px', fontVariantNumeric: 'tabular-nums' }}
+              >
+                {brand.portal_bg_color.toUpperCase()}
+              </span>
+            </div>
+          </div>
+          <p className="font-body text-xs text-ink/35">The full-page background color your clients see.</p>
+        </div>
+
+        {/* Portal card color */}
+        <div className="flex flex-col gap-2">
+          <label className="font-body text-xs text-ink/50 uppercase tracking-wider flex items-center gap-1.5">
+            <Palette size={13} /> Welcome Card Color
+          </label>
+          <div className="flex items-center gap-2 flex-wrap">
+            {CARD_PRESETS.map((p) => (
+              <button
+                key={p.color}
+                type="button"
+                title={p.label}
+                onClick={() => set('portal_card_color', p.color)}
+                className="w-8 h-8 border-2 transition-all"
+                style={{
+                  background: p.color,
+                  borderColor: brand.portal_card_color === p.color ? '#2d2d2d' : '#d1d5db',
+                  borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px',
+                  boxShadow: brand.portal_card_color === p.color ? '2px 2px 0 0 #2d2d2d' : 'none',
+                  transform: brand.portal_card_color === p.color ? 'translate(-1px,-1px)' : 'none',
+                }}
+              />
+            ))}
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={brand.portal_card_color}
+                onChange={(e) => set('portal_card_color', e.target.value)}
+                className="w-8 h-8 border-2 border-ink/30 cursor-pointer"
+                style={{ borderRadius: '6px', padding: '1px' }}
+                title="Custom card color"
+              />
+              <span
+                className="font-body text-sm text-ink/70 px-2 py-0.5 border border-ink/20"
+                style={{ borderRadius: '4px', fontVariantNumeric: 'tabular-nums' }}
+              >
+                {brand.portal_card_color.toUpperCase()}
+              </span>
+            </div>
+          </div>
+          <p className="font-body text-xs text-ink/35">The sticky-note / greeting card on the portal.</p>
+        </div>
+
+        {/* Agency tagline */}
+        <div className="flex flex-col gap-2">
+          <label className="font-body text-xs text-ink/50 uppercase tracking-wider flex items-center gap-1.5">
+            <AlignLeft size={13} /> Agency Tagline
+          </label>
+          <input
+            type="text"
+            value={brand.agency_tagline}
+            onChange={(e) => set('agency_tagline', e.target.value)}
+            placeholder="e.g. Premium Design Studio · Est. 2020"
+            maxLength={60}
+            className="w-full px-4 py-2.5 font-body text-sm text-ink bg-paper border-2 border-ink/40 outline-none focus:border-ink transition-all"
+            style={{ borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px' }}
+          />
+          <div className="flex justify-between">
+            <p className="font-body text-xs text-ink/35">Appears under your agency name in the portal header, in your brand color.</p>
+            <span className="font-body text-xs text-ink/30">{brand.agency_tagline.length}/60</span>
+          </div>
+        </div>
+
+        {/* Hide branding */}
+        <div className="flex flex-col gap-2">
+          <label className="font-body text-xs text-ink/50 uppercase tracking-wider flex items-center gap-1.5">
+            <EyeOff size={13} /> White-Label Footer
+          </label>
+          {plan === 'free' ? (
+            <div
+              className="flex items-center gap-4 p-4 border-2 border-ink/15 bg-muted/20"
+              style={{ borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px' }}
+            >
+              <Lock size={16} className="text-ink/30 flex-shrink-0" />
+              <div>
+                <p className="font-body text-sm font-bold text-ink/50">Hide &quot;Powered by FetchAsset&quot;</p>
+                <p className="font-body text-xs text-ink/35 mt-0.5">
+                  Available on <strong>Solo</strong> plan and above. Upgrade to fully white-label your portal.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => set('hide_branding', !brand.hide_branding)}
+              className={cn(
+                'flex items-center gap-4 p-4 border-2 text-left transition-all',
+                brand.hide_branding
+                  ? 'border-ink bg-ink text-paper shadow-[3px_3px_0_0_#2d2d2d] translate-x-[-1px] translate-y-[-1px]'
+                  : 'border-ink/20 bg-paper text-ink hover:border-ink/50'
+              )}
+              style={{ borderRadius: '220px 30px 240px 20px / 25px 230px 20px 215px' }}
+            >
+              <EyeOff size={16} className="flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-body text-sm font-bold">
+                  {brand.hide_branding ? '✓ Branding hidden' : 'Hide "Powered by FetchAsset"'}
+                </p>
+                <p className="font-body text-xs opacity-60 mt-0.5">
+                  {brand.hide_branding
+                    ? 'Your clients only see your agency identity.'
+                    : 'Enable to fully white-label the portal footer.'}
+                </p>
+              </div>
+            </button>
+          )}
         </div>
 
         {/* Error */}

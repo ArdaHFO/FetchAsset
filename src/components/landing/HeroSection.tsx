@@ -29,13 +29,6 @@ const CHECKLIST = [
   { label: 'Domain credentials', done: false },
 ]
 
-const STATS = [
-  { value: '12 min', label: 'Avg. onboarding time' },
-  { value: '94%',   label: 'Client completion rate' },
-  { value: '3.2×',  label: 'Faster asset collection' },
-  { value: '500+',  label: 'Agencies on FetchAsset' },
-]
-
 const container = {
   hidden: {},
   show: { transition: { staggerChildren: 0.10 } },
@@ -202,26 +195,6 @@ export default function HeroSection() {
         </div>
       </section>
 
-      {/* ── STATS BAR ── */}
-      <section className="border-y-[3px] border-dashed border-muted bg-white/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 md:py-14">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center">
-            {STATS.map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08, ease: 'easeOut' as const }}
-                className={`flex flex-col items-center gap-1 ${i % 2 === 1 ? 'rotate-[0.5deg]' : 'rotate-[-0.5deg]'}`}
-              >
-                <span className="font-heading text-4xl md:text-5xl text-ink">{stat.value}</span>
-                <span className="font-body text-sm text-ink/60">{stat.label}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
     </>
   )
 }

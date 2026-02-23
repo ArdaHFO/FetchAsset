@@ -6,14 +6,9 @@ import { X, Check } from 'lucide-react'
 
 const ROWS: { bad: string; good: string; tag: string }[] = [
   {
-    bad:  '50+ back-and-forth emails just to collect files',
+    bad:  '50+ emails just to collect files',
     good: 'One magic link — client uploads in seconds',
     tag:  '🔗 Magic Links',
-  },
-  {
-    bad:  '"What file type do you need again?"',
-    good: 'AI writes exact specs for every asset automatically',
-    tag:  '✨ AI Specification',
   },
   {
     bad:  'Clients sending wrong formats, wrong sizes',
@@ -26,31 +21,18 @@ const ROWS: { bad: string; good: string; tag: string }[] = [
     tag:  '⏰ Nudger',
   },
   {
-    bad:  'Files buried in Drive, Slack, and email threads',
-    good: 'Everything organized in one clean dashboard',
-    tag:  '📂 Dashboard',
-  },
-  {
-    bad:  'Generic WeTransfer links that look unprofessional',
+    bad:  'Generic links that look unprofessional',
     good: 'Branded portal that looks like your agency',
     tag:  '🎨 Portal Branding',
-  },
-  {
-    bad:  'Clients creating accounts just to send you a file',
-    good: 'Zero friction — no password, no signup needed',
-    tag:  '✦ Passwordless',
   },
 ]
 
 export default function ChaosTable() {
   return (
     <section className="section-container border-t-[3px] border-dashed border-muted">
-      <div className="text-center mb-12">
+      <div className="text-center mb-8">
         <span className="tag-label">Why switch?</span>
         <h2 className="section-title mt-4">The old way vs. the FetchAsset way</h2>
-        <p className="font-body text-ink/45 mt-3 max-w-md mx-auto text-sm leading-relaxed">
-          Every row below is a real problem we&rsquo;ve eliminated.
-        </p>
       </div>
 
       <div className="max-w-3xl mx-auto">
@@ -113,11 +95,6 @@ export default function ChaosTable() {
             </div>
           ))}
         </div>
-
-        {/* Bottom summary */}
-        <p className="font-body text-center text-sm text-ink/40 mt-8">
-          All of this — free to start. No card required.
-        </p>
       </div>
     </section>
   )

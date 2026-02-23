@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, Loader2 } from 'lucide-react'
 
@@ -18,6 +18,8 @@ interface PortalLandingProps {
   wobbleR: string
 }
 
+const localKey = (token: string) => `fetchasset_portal_name_${token}`
+
 export default function PortalLanding({
   token,
   clientName,
@@ -34,9 +36,25 @@ export default function PortalLanding({
   const [name, setName] = useState(clientName)
   const [loading, setLoading] = useState(false)
 
+  // On mount: if we previously saved a name for this portal, skip landing
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(localKey(token))
+      if (saved) {
+        router.replace(`/portal/${token}?name=${encodeURIComponent(saved)}`)
+      }
+    } catch {
+      // localStorage not available (private mode etc.) — that's fine
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
+
   function handleAccess() {
     if (!name.trim()) return
     setLoading(true)
+    try {
+      localStorage.setItem(localKey(token), name.trim())
+    } catch { /* ignore */ }
     router.push(`/portal/${token}?name=${encodeURIComponent(name.trim())}`)
   }
 

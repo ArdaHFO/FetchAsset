@@ -519,6 +519,13 @@ export function PortalChecklist({
   const [localClientName, setLocalClientName] = useState(clientName)
   const [nameSet, setNameSet] = useState(!!clientName)
   const [liveRequests, setLiveRequests] = useState<AssetRequest[]>(requests)
+
+  // Persist client name to localStorage so refresh doesn't lose it
+  useEffect(() => {
+    if (localClientName) {
+      try { localStorage.setItem(`fetchasset_portal_name_${token}`, localClientName) } catch { /* ignore */ }
+    }
+  }, [localClientName, token])
   const [doneIds, setDoneIds] = useState<string[]>(
     () => Object.keys(submissionMap)
   )

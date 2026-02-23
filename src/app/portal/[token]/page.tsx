@@ -3,12 +3,14 @@ import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { PortalChecklist } from '@/components/portal/portal-checklist'
 import ContactCard from '@/components/portal/ContactCard'
+import PortalLanding from './PortalLanding'
 import type { Project, AssetRequest, Submission, Profile, PlanTier } from '@/lib/supabase/types'
 
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
   params: { token: string }
+  searchParams?: { name?: string }
 }
 
 // ── Wobble radius helper ─────────────────────────────────────────
@@ -24,7 +26,8 @@ function getWobblyRadius(intensity: number): string {
   return `${a}px ${b}px ${c}px ${d}px / ${e}px ${f}px ${b}px ${a}px`
 }
 
-export default async function PortalPage({ params }: PageProps) {
+export default async function PortalPage({ params, searchParams }: PageProps) {
+  const clientNameFromUrl = searchParams?.name?.trim() ?? ''
   const admin = createAdminClient()
 
   // ── Fetch project by token ─────────────────────────────────────
@@ -106,6 +109,25 @@ export default async function PortalPage({ params }: PageProps) {
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
   })()
 
+  // ── If no name in URL → show landing page ──────────────────────
+  if (!clientNameFromUrl) {
+    return (
+      <PortalLanding
+        token={params.token}
+        projectTitle={project.title}
+        clientName={project.client_name ?? ''}
+        agencyName={agencyName}
+        brandColor={brandColor}
+        logoUrl={logoUrl}
+        welcomeMsg={welcomeMsg}
+        deadline={clientVisibleDeadline}
+        fontHeading={fontHeading}
+        fontBody={fontBody}
+        wobbleR={wobbleR}
+      />
+    )
+  }
+
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -144,10 +166,10 @@ export default async function PortalPage({ params }: PageProps) {
           >
             <div
               className="w-2 h-2 rounded-full"
-              style={{ background: isDone ? '#22c55e' : brandColor }}
+              style={{ background: submitted === total && total > 0 ? '#22c55e' : brandColor }}
             />
             <span className="text-xs font-bold text-ink" style={{ fontFamily: fontBody }}>
-              {isDone ? 'Complete 🎉' : `${pct}% · ${total - submitted} to go`}
+              {submitted === total && total > 0 ? 'Complete 🎉' : `${pct}% · ${total - submitted} to go`}
             </span>
           </div>
         )}
@@ -175,7 +197,7 @@ export default async function PortalPage({ params }: PageProps) {
           </h1>
           {project.client_name && (
             <p className="text-sm text-ink/65 mt-1" style={{ fontFamily: fontBody }}>
-              Hey, {project.client_name}! 👋
+              Hey, {clientNameFromUrl}! 👋
             </p>
           )}
           {clientVisibleDeadline && (
@@ -204,7 +226,7 @@ export default async function PortalPage({ params }: PageProps) {
             submissionMap={submissionMap}
             projectId={project.id}
             token={params.token}
-            clientName={project.client_name ?? ''}
+            clientName={clientNameFromUrl}
             accentColor={brandColor}
             wobbleIntensity={wobbleIntensity}
             fontBody={fontBody}

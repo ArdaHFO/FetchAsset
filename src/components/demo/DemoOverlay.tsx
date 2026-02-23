@@ -194,7 +194,7 @@ function PreStart({ onStart }: { onStart: () => void }) {
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, type: 'spring', stiffness: 130, damping: 14 }}
-        className="relative mb-2"
+        className="relative mb-6"
       >
         <motion.div
           animate={{ y: [0, -8, 0] }}
@@ -203,8 +203,8 @@ function PreStart({ onStart }: { onStart: () => void }) {
           <Image
             src="/paperclip1.png"
             alt="FetchAsset Mascot"
-            width={160}
-            height={160}
+            width={140}
+            height={140}
             style={{ mixBlendMode: 'multiply' }}
           />
         </motion.div>
@@ -213,7 +213,7 @@ function PreStart({ onStart }: { onStart: () => void }) {
           initial={{ opacity: 0, scale: 0.7, x: 20 }}
           animate={{ opacity: 1, scale: 1, x: 0 }}
           transition={{ delay: 0.55, type: 'spring', stiffness: 200, damping: 18 }}
-          className="absolute -top-4 -right-8 bg-[#fffde7] border-[3px] border-ink px-4 py-2.5 font-body text-xs text-ink max-w-[180px] text-left"
+          className="absolute -bottom-2 -right-14 sm:-right-20 bg-[#fffde7] border-[3px] border-ink px-4 py-2.5 font-body text-xs text-ink max-w-[180px] text-left z-10"
           style={{
             borderRadius: '20px 20px 20px 4px',
             boxShadow: '3px 3px 0 0 #2d2d2d',
@@ -1388,21 +1388,9 @@ function Step6Success({ onRestart, demoState }: { onRestart: () => void; demoSta
       exit={{ opacity: 0, y: -20 }}
       className="w-full max-w-lg text-center"
     >
-      {/* Mascot bounce */}
-      <motion.div
-        initial={{ y: -30, opacity: 0, scale: 0.8 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1, type: 'spring', stiffness: 130, damping: 12 }}
-        className="flex justify-center mb-3"
-      >
-        <motion.div animate={{ y: [0, -12, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' as const }}>
-          <Image src="/paperclip1.png" alt="FetchAsset Mascot celebrating" width={160} height={160} style={{ mixBlendMode: 'multiply' }} />
-        </motion.div>
-      </motion.div>
-
-      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-        <h2 className="font-heading text-5xl md:text-6xl text-ink mb-3">{"That's the magic! 🎉"}</h2>
-        <p className="font-body text-xl text-ink/60 mb-6 max-w-sm mx-auto leading-snug">
+      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <h2 className="font-heading text-4xl md:text-5xl text-ink mb-2">{"That's the magic! 🎉"}</h2>
+        <p className="font-body text-lg text-ink/60 mb-5 max-w-sm mx-auto leading-snug">
           Collect client assets in minutes, not days. AI catches every problem before it costs you.
         </p>
 
@@ -1484,15 +1472,15 @@ function Step6Success({ onRestart, demoState }: { onRestart: () => void; demoSta
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.7 }}
-          className="mb-6 p-5 border-[3px] border-ink bg-[#fffde7]"
+          transition={{ delay: 0.55 }}
+          className="mb-5 p-4 border-[3px] border-ink bg-[#fffde7]"
           style={{ borderRadius: '180px 45px 200px 35px / 40px 190px 30px 170px', boxShadow: '4px 4px 0 0 #2d2d2d' }}
         >
-          <p className="font-heading text-2xl text-ink">Stop Chasing.</p>
-          <p className="font-heading text-2xl text-ink">Start Fetching. ✦</p>
+          <p className="font-heading text-xl text-ink">Stop Chasing.</p>
+          <p className="font-heading text-xl text-ink">Start Fetching. ✦</p>
         </motion.div>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-3">
           <Link href="/login">
             <WobblyButton size="xl" className="gap-3">
               Get Started for Free

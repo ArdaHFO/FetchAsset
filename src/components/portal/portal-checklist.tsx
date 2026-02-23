@@ -5,6 +5,8 @@ import {
   ChevronDown,
   ChevronUp,
   CheckCircle2,
+  Clock,
+  XCircle,
   Circle,
   Link2,
   KeyRound,
@@ -13,6 +15,7 @@ import {
   Paperclip,
   Send,
   Loader2,
+  RefreshCw,
 } from 'lucide-react'
 import { FileUploader } from '@/components/portal/file-uploader'
 import { WobblyButton, WobblyCard, WobblyCardContent } from '@/components/ui'
@@ -83,8 +86,9 @@ function RequestItem({
     const f = Math.round(60 + t * 165)
     return `${a}px ${b}px ${c}px ${d}px / ${e}px ${f}px ${b}px ${a}px`
   }
-  const [open, setOpen] = useState(!existing)
+  const [open, setOpen] = useState(!existing || existing.status === 'rejected')
   const [submitted, setSubmitted] = useState<boolean>(!!existing)
+  const [submissionStatus, setSubmissionStatus] = useState<'pending_review' | 'approved' | 'rejected' | null>(existing?.status ?? null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [valueText, setValueText] = useState(existing?.value_text ?? '')
@@ -119,6 +123,7 @@ function RequestItem({
         return
       }
       setSubmitted(true)
+      setSubmissionStatus('pending_review')
       setOpen(false)
       onDone?.(request.id)
     } catch {
@@ -129,18 +134,25 @@ function RequestItem({
 
   function onUploadSuccess() {
     setSubmitted(true)
+    setSubmissionStatus('pending_review')
     setOpen(false)
     onDone?.(request.id)
   }
+
+  const isRejected = submissionStatus === 'rejected'
+  const isApproved = submissionStatus === 'approved'
+  const isPending  = submissionStatus === 'pending_review'
 
   return (
     <div
       className={cn(
         'border-2 transition-all overflow-hidden',
-        submitted
-          ? 'border-ink/20 bg-paper'
-          : 'border-ink/30 bg-paper',
-        open && !submitted ? 'shadow-[4px_4px_0px_0px_#2d2d2d]' : ''
+        isApproved  ? 'border-green-300 bg-green-50/40'
+        : isRejected ? 'border-accent/50 bg-accent/5'
+        : submitted  ? 'border-ink/20 bg-paper'
+        : 'border-ink/30 bg-paper',
+        open && !submitted ? 'shadow-[4px_4px_0px_0px_#2d2d2d]' : '',
+        open && isRejected ? 'shadow-[4px_4px_0px_0px_#e63946]' : ''
       )}
       style={{ borderRadius: getR(0.7), fontFamily: fontBody }}
     >
@@ -151,8 +163,12 @@ function RequestItem({
       >
         {/* Status icon */}
         <span className="flex-shrink-0">
-          {submitted ? (
-            <CheckCircle2 size={20} style={{ color: accentColor }} />
+          {isApproved ? (
+            <CheckCircle2 size={20} className="text-green-500" />
+          ) : isRejected ? (
+            <XCircle size={20} className="text-accent" />
+          ) : isPending ? (
+            <Clock size={20} className="text-amber-400" />
           ) : (
             <Circle size={20} className="text-ink/25" />
           )}
@@ -169,7 +185,10 @@ function RequestItem({
             <span
               className={cn(
                 'font-body text-sm',
-                submitted ? 'text-ink/55 line-through' : 'text-ink font-medium'
+                isApproved ? 'text-ink/55 line-through'
+                : isRejected ? 'text-accent font-medium'
+                : submitted  ? 'text-ink/55'
+                : 'text-ink font-medium'
               )}
             >
               {request.title}
@@ -183,8 +202,14 @@ function RequestItem({
               </span>
             )}
           </div>
-          {submitted && (
-            <span className="font-body text-xs text-ink/45">✓ Submitted</span>
+          {isApproved && (
+            <span className="font-body text-xs text-green-600 font-semibold">✅ Approved</span>
+          )}
+          {isRejected && (
+            <span className="font-body text-xs text-accent font-semibold">❌ Rejected — please re-submit</span>
+          )}
+          {isPending && (
+            <span className="font-body text-xs text-amber-500">⏳ Under review</span>
           )}
           {submitted && existing?.agency_note && (
             <span className="font-body text-xs text-blue/80 flex items-center gap-1">💬 Note from agency</span>
@@ -206,6 +231,26 @@ function RequestItem({
       {/* Expanded form */}
       {open && (
         <div className="px-4 pb-5 pt-1 border-t border-ink/10 flex flex-col gap-4">
+          {/* Rejection reason */}
+          {isRejected && existing?.rejection_reason && (
+            <div
+              className="flex items-start gap-2 px-4 py-3 bg-accent/8 border border-accent/30"
+              style={{ borderRadius: '10px 3px 10px 3px / 3px 10px 3px 10px' }}
+            >
+              <XCircle size={14} className="text-accent mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-body text-xs text-accent font-semibold mb-0.5">Feedback from agency</p>
+                <p className="font-body text-sm text-ink">{existing.rejection_reason}</p>
+              </div>
+            </div>
+          )}
+          {isRejected && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200" style={{ borderRadius: '8px 2px 8px 2px / 2px 8px 2px 8px' }}>
+              <RefreshCw size={13} className="text-amber-600 flex-shrink-0" />
+              <p className="font-body text-xs text-amber-700">Please update and re-submit below.</p>
+            </div>
+          )}
+
           {/* Description */}
           {request.description && (
             <p className="font-body text-sm text-ink/60">{request.description}</p>
@@ -394,9 +439,15 @@ export function PortalChecklist({
   const [doneIds, setDoneIds] = useState<string[]>(
     () => Object.keys(submissionMap)
   )
+  const [statusMap, setStatusMap] = useState<Record<string, 'pending_review' | 'approved' | 'rejected'>>(
+    () => Object.fromEntries(
+      Object.entries(submissionMap).map(([id, sub]) => [id, sub.status as 'pending_review' | 'approved' | 'rejected'])
+    )
+  )
 
   function handleDone(id: string) {
     setDoneIds((prev) => prev.includes(id) ? prev : [...prev, id])
+    setStatusMap((prev) => ({ ...prev, [id]: 'pending_review' }))
   }
 
   const total = requests.length
@@ -488,6 +539,20 @@ export function PortalChecklist({
           </p>
         </div>
       )}
+
+      {/* ── Status summary bar ─────────────────────────────── */}
+      {Object.keys(statusMap).length > 0 && (() => {
+        const approvedCount = Object.values(statusMap).filter(s => s === 'approved').length
+        const pendingCount = Object.values(statusMap).filter(s => s === 'pending_review').length
+        const rejectedCount = Object.values(statusMap).filter(s => s === 'rejected').length
+        return (
+          <div className="flex flex-wrap gap-3 font-body text-sm">
+            {approvedCount > 0 && <span className="text-green-600 font-semibold">✅ {approvedCount} approved</span>}
+            {pendingCount > 0 && <span className="text-amber-500 font-semibold">⏳ {pendingCount} under review</span>}
+            {rejectedCount > 0 && <span className="text-accent font-semibold">❌ {rejectedCount} needs re-submit</span>}
+          </div>
+        )
+      })()}
 
       <h2 className="text-xl text-ink" style={{ fontFamily: fontHeading }}>Your asset list</h2>
       {requests.map((req, idx) => (
